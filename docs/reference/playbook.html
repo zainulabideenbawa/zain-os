@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zain OS Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Amiri:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column (leather notebook) with wide "instrument" panels for the day arc and library grid. Dark-first, per Zain OS design.md. */
+:root{
+  --bg:#0F0F0F; --surface:#171615; --card:#201F1D; --line:#2F2C28; --line-2:#3D3830;
+  --fg:#F3F0EA; --muted:#AAA59C; --faint:#6E6961;
+  --gold:#C8A96E; --gold-dim:#8A6F3E; --gold-glow:rgba(200,169,110,.13);
+  --night:#0D1524; --night-line:#22324F;
+  --ok:#4CAF7D; --warn:#E8A838; --bad:#E85C5C;
+  --f-display:"Cormorant Garamond","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --f-mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-ar:"Amiri","Geeza Pro","Traditional Arabic",serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F2F0EB; --surface:#E9E6DF; --card:#FBFAF7; --line:#D9D4C9; --line-2:#C9C2B3;
+    --fg:#1B1914; --muted:#5C5647; --faint:#8C8575;
+    --gold:#8C6A2A; --gold-dim:#B39359; --gold-glow:rgba(140,106,42,.10);
+    --night:#E3E7EF; --night-line:#B8C3D6;
+    --ok:#2E7D55; --warn:#A86A06; --bad:#B53A3A;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F2F0EB; --surface:#E9E6DF; --card:#FBFAF7; --line:#D9D4C9; --line-2:#C9C2B3;
+  --fg:#1B1914; --muted:#5C5647; --faint:#8C8575;
+  --gold:#8C6A2A; --gold-dim:#B39359; --gold-glow:rgba(140,106,42,.10);
+  --night:#E3E7EF; --night-line:#B8C3D6;
+  --ok:#2E7D55; --warn:#A86A06; --bad:#B53A3A;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--f-body);margin:0;-webkit-font-smoothing:antialiased}
+a{color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:0 96px}
+.col{max-width:720px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h2{font-size:clamp(30px,4.2vw,42px);line-height:1.1}
+h3{font-size:23px;line-height:1.2}
+p{margin:0}
+.eyebrow{font:500 11px/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.lede{color:var(--muted);font-size:16.5px;max-width:64ch}
+.ar{font-family:var(--f-ar);direction:rtl;unicode-bidi:isolate}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+section{padding-block:72px 0;display:grid;gap:28px;scroll-margin-top:64px}
+.sec-head{display:grid;gap:14px}
+.rule{height:1px;background:var(--line);border:0;margin:72px 0 0}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1080px;margin:0 auto;padding-inline:20px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-block:10px}
+.nav-in::-webkit-scrollbar{display:none}
+.nav a{flex:none;font:500 12px/1 var(--f-mono);letter-spacing:.06em;color:var(--muted);text-decoration:none;padding:8px 11px;border:1px solid transparent;border-radius:999px}
+.nav a:hover{color:var(--fg);border-color:var(--line-2)}
+.nav .brand{color:var(--gold);font-weight:500}
+
+/* hero */
+.hero{padding-block:56px 8px;display:grid;gap:22px}
+.hero h1{font-size:clamp(52px,9vw,104px);line-height:.92;font-weight:600}
+.hero h1 em{font-style:italic;color:var(--gold);font-weight:500}
+.hero .tag{font-family:var(--f-display);font-size:clamp(22px,3vw,30px);line-height:1.25;color:var(--fg);max-width:30ch}
+.hero .tag span{color:var(--gold)}
+.stats{display:flex;flex-wrap:wrap;gap:10px}
+.stat{display:grid;gap:4px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);min-width:0}
+.stat b{font:500 20px/1.1 var(--f-mono);color:var(--fg);font-variant-numeric:tabular-nums}
+.stat small{font:500 10.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+
+/* day arc */
+.arc-panel{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--surface),var(--bg));overflow:hidden}
+.arc-scroll{overflow-x:auto}
+.arc-scroll svg{display:block;width:100%;min-width:680px;height:auto}
+.arc-foot{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--line)}
+.cp{padding:16px 14px 18px;display:grid;gap:6px;align-content:start;min-width:0;border-left:1px solid var(--line)}
+.cp:first-child{border-left:0}
+.cp .n{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cp .n b{font-family:var(--f-display);font-size:22px;font-weight:600}
+.cp .n .ar{color:var(--gold);font-size:18px}
+.cp .t{font:500 11.5px/1 var(--f-mono);color:var(--faint)}
+.cp .min{font-size:13.5px;line-height:1.45}
+.cp .min strong{color:var(--gold);font-weight:600}
+.cp .tgt{font-size:12.5px;color:var(--muted);line-height:1.45}
+.cp.is-next{background:var(--gold-glow)}
+@media (max-width:760px){.arc-foot{grid-template-columns:1fr}.cp{border-left:0;border-top:1px solid var(--line)}.cp:first-child{border-top:0}}
+
+/* generic */
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:860px){.grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:20px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel h3{font-size:21px}
+.panel p,.panel li{font-size:14px;color:var(--muted)}
+.panel ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.key{color:var(--fg)}
+
+/* loop */
+.loop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.st{padding:22px 20px;display:grid;gap:8px;align-content:start;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.st:nth-child(3n){border-right:0}
+.st:nth-child(n+4){border-bottom:0}
+.st .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.st .num{font:500 11px/1 var(--f-mono);color:var(--faint)}
+.st .ar{font-size:24px;color:var(--gold);line-height:1}
+.st h3{font-size:22px}
+.st .when{font:500 11px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dim)}
+.st p{font-size:14px;color:var(--muted)}
+@media (max-width:760px){.loop{grid-template-columns:1fr}.st{border-right:0;border-bottom:1px solid var(--line)!important}.st:last-child{border-bottom:0!important}}
+
+/* quote */
+.quote{border-left:2px solid var(--gold);padding:6px 0 6px 20px;display:grid;gap:10px;max-width:760px}
+.quote .ar{font-size:clamp(20px,2.6vw,26px);line-height:1.9;color:var(--fg);text-align:right}
+.quote p{font-family:var(--f-display);font-size:21px;line-height:1.4;font-style:italic}
+.quote cite{font:500 11px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-style:normal}
+
+/* hierarchy */
+.tiers{display:grid;gap:8px}
+.tier{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:center;padding:14px 18px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.tier:nth-child(1){margin-inline:0;border-color:var(--gold-dim)}
+.tier:nth-child(2){margin-inline:4%}
+.tier:nth-child(3){margin-inline:8%}
+.tier .lvl{font:500 10.5px/1.2 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.tier p{font-size:14.5px}
+@media (max-width:620px){.tier{grid-template-columns:1fr;gap:4px}.tier:nth-child(n){margin-inline:0}}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:500 10.5px/1.2 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);background:var(--surface)}
+td:first-child{white-space:nowrap}
+td .mono{color:var(--gold)}
+
+/* timeline */
+.timeline{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tl{display:grid;grid-template-columns:78px minmax(0,1fr);gap:14px;padding:11px 16px;border-bottom:1px solid var(--line);font-size:14.5px;align-items:baseline}
+.tl:last-child{border-bottom:0}
+.tl .mono{color:var(--faint);font-size:12.5px}
+.tl.salah{background:var(--gold-glow)}
+.tl.salah b{color:var(--gold);font-weight:600}
+.tl.deep{background:color-mix(in srgb,var(--night) 70%,transparent)}
+.tl.deep b{color:var(--fg)}
+.tl small{color:var(--muted)}
+
+/* streak */
+.track{position:relative;padding:34px 8px 10px}
+.track-line{position:absolute;left:14px;right:14px;top:47px;height:2px;background:var(--line-2)}
+.track ol{list-style:none;margin:0;padding:0;display:flex;justify-content:space-between;position:relative}
+.track li{display:grid;justify-items:center;gap:8px;min-width:0}
+.dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--gold-dim);background:var(--bg);display:grid;place-items:center;font:500 11px/1 var(--f-mono);color:var(--gold)}
+.track li.big .dot{width:36px;height:36px;border-color:var(--gold);background:var(--gold-glow);font-size:12px}
+.track li span{font-size:11.5px;color:var(--muted);text-align:center;max-width:9ch;line-height:1.3}
+.states{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:7px;font:500 12px/1 var(--f-mono);padding:7px 11px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted)}
+.pill i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* hook ring */
+.hook{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.hk{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start;position:relative;background:var(--surface);min-width:0}
+.hk .eyebrow{color:var(--gold-dim)}
+.hk h3{font-size:20px}
+.hk p{font-size:13.5px;color:var(--muted)}
+@media (max-width:860px){.hook{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.hook{grid-template-columns:1fr}}
+
+/* laws */
+.laws{counter-reset:law;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border-top:1px solid var(--line)}
+.law{counter-increment:law;display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;padding:18px 4px;border-bottom:1px solid var(--line)}
+.law::before{content:counter(law,decimal-leading-zero);font:500 12px/1.9 var(--f-mono);color:var(--gold)}
+.law b{font-family:var(--f-display);font-size:21px;font-weight:600;display:block;line-height:1.2}
+.law span{font-size:13.5px;color:var(--muted)}
+.laws .law:nth-child(odd){padding-right:24px}
+@media (max-width:700px){.laws{grid-template-columns:1fr}.laws .law:nth-child(odd){padding-right:4px}}
+
+/* library */
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:500 12px/1 var(--f-mono);letter-spacing:.04em;padding:9px 13px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--muted);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--bg)}
+.lib{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.lib{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.lib{grid-template-columns:1fr}}
+.book{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:18px;display:grid;gap:10px;align-content:start;min-width:0}
+.book header{display:grid;gap:3px}
+.book h3{font-size:21px}
+.book .by{font-size:12.5px;color:var(--faint)}
+.book .cat{font:500 10px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dim)}
+.book .gist{font-family:var(--f-display);font-style:italic;font-size:17px;line-height:1.35;color:var(--fg)}
+.book dl{margin:0;display:grid;gap:8px}
+.book dt{font:500 10px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.book dd{margin:4px 0 0;font-size:13.5px;color:var(--muted);line-height:1.5}
+.book dd.os{color:var(--fg)}
+.book dd.os::before{content:"→ ";color:var(--gold)}
+
+/* checklist */
+.checks{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.checks label{display:grid;grid-template-columns:22px minmax(0,1fr);gap:14px;align-items:start;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14.5px}
+.checks label:last-child{border-bottom:0}
+.checks input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:1.5px solid var(--gold-dim);border-radius:6px;margin:1px 0 0;display:grid;place-items:center;cursor:pointer;background:transparent}
+.checks input:checked{background:var(--gold);border-color:var(--gold)}
+.checks input:checked::after{content:"";width:10px;height:6px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.checks input:checked + span{color:var(--faint);text-decoration:line-through}
+.progress{font:500 12px/1 var(--f-mono);color:var(--gold)}
+
+.sources{font-size:13px;color:var(--muted);display:grid;gap:6px}
+.sources a{color:var(--muted)}
+footer{margin-top:72px;padding-top:24px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;font:500 11px/1.4 var(--f-mono);color:var(--faint);letter-spacing:.06em}
+@media (prefers-reduced-motion:no-preference){.now-pulse{animation:pulse 2.4s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}}
+</style>
+</head><body>
+
+<nav class="nav" aria-label="Sections">
+  <div class="nav-in">
+    <a class="brand" href="#top">ZAIN OS</a>
+    <a href="#day">The Day</a>
+    <a href="#loop">The Loop</a>
+    <a href="#why">Why</a>
+    <a href="#morning">Victory Hour</a>
+    <a href="#schedule">Schedule</a>
+    <a href="#streak">Streak</a>
+    <a href="#hooks">Hooks</a>
+    <a href="#fuel">Motivation</a>
+    <a href="#barakah">Barakah</a>
+    <a href="#cadence">Cadence</a>
+    <a href="#outcomes">Outcomes</a>
+    <a href="#laws">12 Laws</a>
+    <a href="#library">Library</a>
+    <a href="#conflicts">Conflicts</a>
+    <a href="#app">The App</a>
+    <a href="#start">Day 1</a>
+  </div>
+</nav>
+
+<main class="wrap" id="top">
+
+<header class="hero">
+  <span class="eyebrow">Cycle 1 · Sep 28 → Dec 20, 2026 · Karachi</span>
+  <h1>Zain <em>OS</em></h1>
+  <p class="tag">Five salah. Five checkpoints. <span>One streak.</span> Everything else hangs on these.</p>
+  <div class="stats">
+    <div class="stat"><small>Cycle day</small><b id="cycleDay">1 / 84</b></div>
+    <div class="stat"><small>Week</small><b id="cycleWeek">1 / 12</b></div>
+    <div class="stat"><small>WIG</small><b style="font-family:var(--f-body);font-size:15px;font-weight:600">5 apps launched &amp; earning</b></div>
+    <div class="stat"><small>Books distilled</small><b>31</b></div>
+  </div>
+</header>
+
+<!-- ============ THE DAY ============ -->
+<section id="day">
+  <div class="sec-head">
+    <span class="eyebrow">The day at a glance</span>
+    <h2>The sun moves. You answer five small questions.</h2>
+    <p class="lede">Each salah is a checkpoint. After it, the app asks for one or two tiny things, and each one is a single tap. Do the minimums and the day is kept, even on your worst day. Hit the targets and it's a great day.</p>
+  </div>
+  <div class="arc-panel">
+    <div class="arc-scroll"><svg id="arc" viewBox="0 0 960 250" role="img" aria-label="The day from 04:30 to 22:30, with the five jamaat times on the sun's path, the Big Rock deep work block, and bedtime."></svg></div>
+    <div class="arc-foot" id="cps">
+      <div class="cp" data-t="330"><div class="n"><b>Fajr</b><span class="ar">الفجر</span></div><span class="t">~05:30 jamaat</span><p class="min"><strong>Minimum:</strong> Qur'an 1 page · move 20 min</p><p class="tgt">Target: jamaat, Qur'an 15 min, adhkar, run or gym</p></div>
+      <div class="cp" data-t="795"><div class="n"><b>Dhuhr</b><span class="ar">الظهر</span></div><span class="t">~13:15 jamaat</span><p class="min"><strong>Minimum:</strong> Big Rock done, 90 min deep work on the WIG</p><p class="tgt">Target: 3–4 hrs deep work, 3 revenue actions</p></div>
+      <div class="cp" data-t="1020"><div class="n"><b>Asr</b><span class="ar">العصر</span></div><span class="t">~17:00 jamaat</span><p class="min"><strong>Minimum:</strong> Arabic 10 min</p><p class="tgt">Target: Arabic 20 min, Deep Work 3 done</p></div>
+      <div class="cp" data-t="1105"><div class="n"><b>Maghrib</b><span class="ar">المغرب</span></div><span class="t">~18:25 jamaat</span><p class="min"><strong>Minimum:</strong> the salah</p><p class="tgt">Target: family dinner, phone in another room</p></div>
+      <div class="cp" data-t="1215"><div class="n"><b>Isha</b><span class="ar">العشاء</span></div><span class="t">~20:15 jamaat</span><p class="min"><strong>Minimum:</strong> muhasaba + plan tomorrow, 5 min</p><p class="tgt">Target: read 20 min, in bed by 21:45</p></div>
+    </div>
+  </div>
+  <p class="muted" style="font-size:13px">Azan times are for Karachi on Sep 28 (University of Karachi method, Hanafi Asr). Jamaat times are approximate: set your masjid's times once and the app recalculates every day as the seasons shift. <strong class="key">Day kept</strong> = all 5 salah on time + every minimum above.</p>
+</section>
+
+<!-- ============ THE LOOP ============ -->
+<section id="loop">
+  <div class="sec-head">
+    <span class="eyebrow">The operating loop · al-Ghazali, Iḥyāʾ, Book of Murāqaba &amp; Muḥāsaba</span>
+    <h2>A 900-year-old system for self-discipline, run every day.</h2>
+    <p class="lede">Al-Ghazali describes six stations for disciplining the self. They map almost exactly onto modern habit science: commit in the morning, watch through the day, review at night, apply a consequence, push harder, and learn from the week. This is the backbone of Zain OS.</p>
+  </div>
+  <div class="loop">
+    <div class="st"><div class="top"><span class="num">1 · Morning</span><span class="ar">مشارطة</span></div><h3>Mushāraṭa</h3><span class="when">Set terms with the self</span><p>After Fajr: niyyah, identity line, confirm last night's plan. You decide the day before the day decides you.</p></div>
+    <div class="st"><div class="top"><span class="num">2 · All day</span><span class="ar">مراقبة</span></div><h3>Murāqaba</h3><span class="when">Watchfulness</span><p>The five salah checkpoints. One tap each keeps you aware of the plan without having to remember it.</p></div>
+    <div class="st"><div class="top"><span class="num">3 · After Isha</span><span class="ar">محاسبة</span></div><h3>Muḥāsaba</h3><span class="when">Self-accounting</span><p>A 5-minute review: what went well, what didn't and why, shukr or istighfar. Then plan tomorrow.</p></div>
+    <div class="st"><div class="top"><span class="num">4 · Weekly</span><span class="ar">معاقبة</span></div><h3>Muʿāqaba</h3><span class="when">Consequence</span><p>A self-chosen stake: a sadaqah pledge for a lost week, confirmed by your partner. Skipping costs something, and the cost does good.</p></div>
+    <div class="st"><div class="top"><span class="num">5 · When lagging</span><span class="ar">مجاهدة</span></div><h3>Mujāhada</h3><span class="when">Striving</span><p>Hard Mode: one stretch challenge a week. When you fall behind, you push harder instead of quitting.</p></div>
+    <div class="st"><div class="top"><span class="num">6 · Sunday</span><span class="ar">معاتبة</span></div><h3>Muʿātaba</h3><span class="when">Honest self-reproach</span><p>The Sunday review and the accountability mirror. You say the truth about the week, then fix the system, not just the mood.</p></div>
+  </div>
+  <div class="quote">
+    <p>"Hold yourselves to account before you are held to account."</p>
+    <cite>ʿUmar ibn al-Khaṭṭāb · reported by al-Tirmidhī</cite>
+  </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section id="why">
+  <div class="sec-head">
+    <span class="eyebrow">Identity, niyyah, and the goal hierarchy</span>
+    <h2>Motivation starts at the top of the ladder.</h2>
+    <p class="lede">Grit research (Duckworth) shows that people who persist connect their daily tasks to a top-level purpose. Atomic Habits adds that every action is a vote for who you are becoming. So the daily minimums are tied to the highest thing you care about.</p>
+  </div>
+  <div class="tiers">
+    <div class="tier"><span class="lvl">Top · Why</span><p><strong>The pleasure of Allah.</strong> To be the strong believer: strong in faith, body, knowledge and provision.</p></div>
+    <div class="tier"><span class="lvl">Middle · Who</span><p>A Muslim who understands the Qur'an in Arabic, a fit and disciplined body, a builder who ships products, and a provider for his family and his team.</p></div>
+    <div class="tier"><span class="lvl">Daily · What</span><p>Five salah, Qur'an, Arabic, move, Big Rock, muhasaba. Six small votes a day.</p></div>
+  </div>
+  <div class="grid-2">
+    <div class="panel"><span class="eyebrow">Identity line · read each morning</span><h3>"I am a Muslim who keeps his promises to Allah and to himself, and a builder who ships every day."</h3><p>Edit it into your own words. It appears on the Why Card every morning, and the coach uses it when you slip.</p></div>
+    <div class="panel"><span class="eyebrow">Cycle 1 focus · 12 Week Year + The ONE Thing</span>
+      <ul>
+        <li><span class="key">WIG:</span> 5 apps launched &amp; earning (PayClock first, The Drop supports it)</li>
+        <li><span class="key">Keep-alive:</span> TekScrum revenue (PackFlo, CoprTrainer, Sindh Agri)</li>
+        <li><span class="key">Personal project:</span> two Maker Blocks a week (Fri 14:30–16:30 · Sat 11:30–13:15), one project picked from the Parked list; SolSniper upkeep first on Friday if needed</li>
+        <li><span class="key">Parked until Dec 20:</span> the rest of LoreOS, tools site, accounting product, Ihsan, niche sites</li>
+      </ul>
+    </div>
+  </div>
+  <div class="quote">
+    <p class="ar">الْمُؤْمِنُ الْقَوِيُّ خَيْرٌ وَأَحَبُّ إِلَى اللَّهِ مِنَ الْمُؤْمِنِ الضَّعِيفِ … احْرِصْ عَلَى مَا يَنْفَعُكَ وَاسْتَعِنْ بِاللَّهِ وَلَا تَعْجَزْ</p>
+    <p>"The strong believer is better and more beloved to Allah than the weak believer… Be eager for what benefits you, seek Allah's help, and do not give up."</p>
+    <cite>Ṣaḥīḥ Muslim 2664</cite>
+  </div>
+</section>
+
+<!-- ============ VICTORY HOUR ============ -->
+<section id="morning">
+  <div class="sec-head">
+    <span class="eyebrow">The Victory Hour · 5AM Club × Miracle Morning × Sunnah</span>
+    <h2>You already wake at five. Now make that hour count.</h2>
+    <p class="lede">Robin Sharma's 20/20/20 formula (Move, Reflect, Grow) and Hal Elrod's SAVERS both say that whoever owns the first hour owns the day. Fajr gives you that hour for free, and it's the time the Prophet ﷺ asked Allah to bless.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Time</th><th>Block</th><th>SAVERS</th><th>What you do</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mono">05:05</span></td><td>Rise</td><td>—</td><td>Alarm is across the room and the phone is outside the bedroom. Wudu, then masjid. You don't negotiate with yourself about getting up (Jocko).</td></tr>
+      <tr><td><span class="mono">05:30</span></td><td><strong>Reflect</strong></td><td>Silence · Affirmations</td><td>Fajr in jamaat → after the salam, the <em>dua for beneficial knowledge, good provision and accepted deeds</em> → morning adhkar → the <em>dua against laziness</em> → identity line.</td></tr>
+      <tr><td><span class="mono">05:50</span></td><td><strong>Reflect</strong></td><td>Reading · Visualization</td><td>Qur'an (minimum 1 page, target 15 min) → the Why Card: picture the Big Rock already done.</td></tr>
+      <tr><td><span class="mono">06:10</span></td><td><strong>Move</strong></td><td>Exercise</td><td>Run 30 min (Mon/Wed/Fri) or gym 60 min (Tue/Thu/Sat).</td></tr>
+      <tr><td><span class="mono">06:10</span></td><td><strong>Grow</strong></td><td>Reading (audio)</td><td>An audiobook or learning podcast, played <em>only</em> during the workout. This pairs something you should do with something you enjoy (temptation bundling, Milkman).</td></tr>
+      <tr><td><span class="mono">07:15</span></td><td>Launch</td><td>Scribing</td><td>Breakfast → confirm today's plan (1 min) → <strong>no feeds, news or inbox until the Big Rock is done.</strong></td></tr>
+      <tr><td><span class="mono">07:30</span></td><td><strong>Big Rock</strong></td><td>—</td><td><em>90/90/1</em> (Sharma): the first 90 minutes of work go to your ONE thing, every working day of the cycle. This is also Eat That Frog and The ONE Thing.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="grid-2">
+    <div class="quote">
+      <p class="ar">اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ، وَغَلَبَةِ الرِّجَالِ</p>
+      <p>"O Allah, I seek refuge in You from worry and grief, from incapacity and <strong style="font-style:normal;color:var(--gold)">laziness</strong>, from miserliness and cowardice, from the burden of debt and from being overpowered by men."</p>
+      <cite>Ṣaḥīḥ al-Bukhārī 6369 · said every morning</cite>
+    </div>
+    <div class="quote">
+      <p class="ar">اللَّهُمَّ بَارِكْ لِأُمَّتِي فِي بُكُورِهَا</p>
+      <p>"O Allah, bless my ummah in its early mornings."</p>
+      <cite>Abū Dāwūd 2606 · al-Tirmidhī 1212</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCHEDULE ============ -->
+<section id="schedule">
+  <div class="sec-head">
+    <span class="eyebrow">Weekday template · Mon–Thu · October</span>
+    <h2>Every hour already has a job.</h2>
+    <p class="lede">The day is time-blocked (Newport, Keller), the Big Rock comes first (Tracy), deep work is capped at four hours, and there's buffer for when things run over (McKeown). Rest is part of the work: qailulah after Dhuhr and sleep after Isha, both from the Sunnah.</p>
+  </div>
+  <div class="timeline">
+    <div class="tl"><span class="mono">04:45</span><span>Tahajjud <small>· Sun/Wed/Fri pre-dawn · target 3 a week, minimum 1</small></span></div>
+    <div class="tl salah"><span class="mono">05:30</span><span><b>Fajr</b> → Qur'an + adhkar → run / gym <small>· Victory Hour</small></span></div>
+    <div class="tl"><span class="mono">07:15</span><span>Breakfast · Why Card · confirm plan</span></div>
+    <div class="tl deep"><span class="mono">07:30</span><span><b>Big Rock · Deep Work 1</b> <small>· 2 hrs · WIG · starts with Bismillah · Focus mode on · 60/10 cycles optional</small></span></div>
+    <div class="tl"><span class="mono">09:30</span><span>LinkedIn post + sales standup <small>· 30 min</small></span></div>
+    <div class="tl deep"><span class="mono">10:00</span><span><b>Deep Work 2</b> <small>· 1.5 hrs · WIG</small></span></div>
+    <div class="tl"><span class="mono">11:30</span><span>TekScrum ops, meetings, revenue actions <small>· see Cadence</small></span></div>
+    <div class="tl salah"><span class="mono">13:15</span><span><b>Dhuhr</b> → lunch → <b>qailulah 20 min</b></span></div>
+    <div class="tl deep"><span class="mono">14:30</span><span><b>Deep Work 3</b> <small>· 1 hr · TekScrum keep-alive</small></span></div>
+    <div class="tl"><span class="mono">15:30</span><span>Admin, email, <strong>buffer</strong> <small>· anything that ran over lands here, not in your evening</small></span></div>
+    <div class="tl salah"><span class="mono">17:00</span><span><b>Asr</b> → <b>Arabic 10–20 min</b> → walk / family</span></div>
+    <div class="tl salah"><span class="mono">18:25</span><span><b>Maghrib</b> → dinner with family, phone in another room</span></div>
+    <div class="tl salah"><span class="mono">20:15</span><span><b>Isha</b> → evening adhkar → <b>muhasaba + plan</b> → read 20 min, no screens</span></div>
+    <div class="tl"><span class="mono">21:45</span><span>Sleep <small>· 21:30 before Tahajjud nights · ≈7h+ before the 05:05 wake</small></span></div>
+  </div>
+  <div class="grid-3">
+    <div class="panel"><span class="eyebrow">Friday</span><p>Run → Big Rock → <span class="key">Jumu'ah + Surah al-Kahf</span> → lunch → <span class="key">Maker Block 14:30–16:30</span>: SolSniper check first if needed, then your personal project → Asr → Arabic → evening off.</p></div>
+    <div class="panel"><span class="eyebrow">Saturday</span><p>Gym 06:00 → Arabic prep → <span class="key">Arabic class 9–11</span> (counts as both the Big Rock and Arabic) → break → <span class="key">Maker Block 11:30–13:15</span> → Dhuhr → afternoon off, family.</p></div>
+    <div class="panel"><span class="eyebrow">Sunday · recovery + review</span><p>Slow morning → <span class="key">weekly review 09:00</span> → partner check-in → rest, family, extra Qur'an. Sharma's "Twin Cycles": deep recovery is what makes the push possible.</p></div>
+  </div>
+</section>
+
+<!-- ============ STREAK ============ -->
+<section id="streak">
+  <div class="sec-head">
+    <span class="eyebrow">The streak · Clear × Duolingo × Milkman</span>
+    <h2>A chain that survives bad days.</h2>
+    <p class="lede">Streaks motivate, but research shows a broken streak makes people quit (Silverman &amp; Barasch). So this chain bends instead of snapping. You miss once, you come back, and the chain lives.</p>
+  </div>
+  <div class="arc-panel" style="padding:8px 12px 18px">
+    <div class="track"><div class="track-line"></div>
+      <ol>
+        <li><div class="dot">3</div><span>First spark</span></li>
+        <li><div class="dot">7</div><span>First week · earns a freeze</span></li>
+        <li><div class="dot">14</div><span>Two weeks</span></li>
+        <li><div class="dot">21</div><span>Three weeks</span></li>
+        <li class="big"><div class="dot">40</div><span>Forty days</span></li>
+        <li class="big"><div class="dot">66</div><span>Habit median (Lally)</span></li>
+        <li><div class="dot">84</div><span>Full cycle</span></li>
+      </ol>
+    </div>
+  </div>
+  <div class="states">
+    <span class="pill"><i style="background:var(--gold)"></i>Kept · all minimums</span>
+    <span class="pill"><i style="background:var(--warn)"></i>At risk · missed yesterday</span>
+    <span class="pill"><i style="background:var(--ok)"></i>Comeback · kept after a miss</span>
+    <span class="pill"><i style="background:#6F8FC7"></i>Frozen · freeze used</span>
+    <span class="pill"><i style="background:var(--bad)"></i>Reset · two misses in a row</span>
+  </div>
+  <div class="grid-3">
+    <div class="panel"><h3>Never miss twice</h3><p>One miss turns the chain amber; it doesn't reset. Keep the next day and it's restored with a <span class="key">Comeback</span> badge. The comeback is the most-rewarded moment in the system (Milkman's megastudy: rewarding a return after a missed workout was one of the strongest interventions).</p></div>
+    <div class="panel"><h3>Freezes</h3><p>You earn one freeze for every 7 kept days and can bank up to 2. Use them for travel, illness or a family emergency. Goals with a few emergency passes hold up better than all-or-nothing goals.</p></div>
+    <div class="panel"><h3>Bad Day Mode</h3><p>One button. Targets hide, reminders soften, the Cookie Jar opens. You still do the minimums, the streak survives, and there's no guilt. This is how the chain lasts through flu, travel and heavy client days.</p></div>
+  </div>
+  <div class="panel"><span class="eyebrow">Phase-in (Fogg: start tiny, then grow)</span>
+    <p><span class="key">Week 1</span> — minimums only; win = 6 of 7 days kept · <span class="key">Week 2</span> — adds the 3-hr deep-work target; win at 70% · <span class="key">Weeks 3–12</span> — all targets; win at 85% (12 Week Year) · <span class="key">Shrink rule</span> — if something breaks the chain twice in 14 days, make that minimum smaller (e.g. Big Rock 90 → 60 min) and grow it back once it's held for 14 days.</p>
+  </div>
+</section>
+
+<!-- ============ HOOKS ============ -->
+<section id="hooks">
+  <div class="sec-head">
+    <span class="eyebrow">The hook loop · Nir Eyal, Hooked</span>
+    <h2>Why you'll open it every day without trying.</h2>
+    <p class="lede">Habit-forming products run one loop: something prompts you, you take one small action, you get a reward, and you put something in that sets up the next prompt. Here the prompt is the salah itself. After about two months, you'll finish Asr and reach for your Arabic notebook without the app.</p>
+  </div>
+  <div class="hook">
+    <div class="hk"><span class="eyebrow">1 · Trigger</span><h3>The adhan</h3><p>One push after each jamaat names the next tiny thing: "Asr done · Arabic 10 min · 🔥 12".</p></div>
+    <div class="hk"><span class="eyebrow">2 · Action</span><h3>One tap</h3><p>Under 10 seconds. A 5-4-3-2-1 → Start button for the Big Rock (Mel Robbins). The minimum is always 2 minutes or less to begin (Clear).</p></div>
+    <div class="hk"><span class="eyebrow">3 · Variable reward</span><h3>Alhamdulillah</h3><p>A haptic tap and the flame grows (Fogg's "celebrate"). Sometimes a milestone, sometimes a coach line, sometimes an ayah card on a kept day.</p></div>
+    <div class="hk"><span class="eyebrow">4 · Investment</span><h3>Tonight's plan</h3><p>The evening plan writes tomorrow's first action into the 07:30 reminder. The longer the chain, the more you'll protect it.</p></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>When</th><th>Reminder · at most 8 a day</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mono">21:30</span> Tahajjud eves</td><td>"Tahajjud tonight — in bed now."</td></tr>
+      <tr><td><span class="mono">Jamaat −15</span> ×5</td><td>"Asr jamaat in 15 · after: Arabic 10 min · 🔥 12"</td></tr>
+      <tr><td><span class="mono">07:30</span></td><td>"Big Rock: finish the PayClock paywall screen. 5-4-3-2-1 → Start" (from last night's plan)</td></tr>
+      <tr><td><span class="mono">07:45</span> if no timer</td><td>"Big Rock hasn't started. Just 5 minutes?"</td></tr>
+      <tr><td><span class="mono">Isha +25</span></td><td>"Muhasaba + plan — 5 min · 🔥 12 on the line"</td></tr>
+      <tr><td><span class="mono">21:45</span> if not done</td><td>"Streak at risk. 3 minutes saves it."</td></tr>
+      <tr><td><span class="mono">Morning after a miss</span></td><td>"Good. Comeback day — keep today and the streak is restored." (Jocko)</td></tr>
+      <tr><td><span class="mono">Sun 09:00</span></td><td>"Weekly review ready."</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:13.5px">Silence rules: while a focus timer runs, only prayer reminders come through. Nothing after 21:45 except the Tahajjud alarm. If you ignore the same reminder five days running, the coach asks whether to move or change it instead of repeating it.</p>
+</section>
+
+<!-- ============ FUEL ============ -->
+<section id="fuel">
+  <div class="sec-head">
+    <span class="eyebrow">The motivation stack</span>
+    <h2>What carries you on the days you don't feel like it.</h2>
+    <p class="lede">Motivation rises and falls (Fogg). So the system stacks several levers, and on any given day at least one of them works.</p>
+  </div>
+  <div class="grid-3">
+    <div class="panel"><span class="eyebrow">Meaning · Pink, Covey</span><h3>Why Card</h3><p>Every morning: your niyyah, identity line and "Week 1 of 12 · 84 days to launch 5 apps."</p></div>
+    <div class="panel"><span class="eyebrow">Momentum · Hardy, Clear</span><h3>The streak</h3><p>The flame and its milestones. The number is printed on every reminder, so you know what's on the line.</p></div>
+    <div class="panel"><span class="eyebrow">Evidence · Goggins</span><h3>Cookie Jar</h3><p>Every "went well" line from muhasaba is saved. When you slip, the app opens it and shows you proof of who you've been.</p></div>
+    <div class="panel"><span class="eyebrow">Honesty · Goggins</span><h3>Accountability mirror</h3><p>A sticky note on your bathroom mirror with the WIG and one line of why. You see it at Fajr wudu and before bed.</p></div>
+    <div class="panel"><span class="eyebrow">Coaching · AI + Milkman</span><h3>The coach</h3><p>A short, varied reply after each muhasaba: one win, the barrier behind a miss, one fix for tomorrow. Tone: Gentle, Direct or Jocko.</p></div>
+    <div class="panel"><span class="eyebrow">Witness · 4DX, 12WY</span><h3>Your partner</h3><p>Every Sunday: share your scorecard and have a 15-minute call. Progress that others see is much more likely to happen (Harkin meta-analysis).</p></div>
+    <div class="panel"><span class="eyebrow">Stakes · Eyal, Milkman</span><h3>Sadaqah pledge</h3><p>Optional, from week 3: a lost week means sadaqah, confirmed by your partner. It works as three pacts: effort (Focus mode), price (sadaqah) and identity (your line).</p></div>
+    <div class="panel"><span class="eyebrow">Challenge · Goggins 40% rule</span><h3>Hard Mode</h3><p>One opt-in stretch a week: an extra Tahajjud, a 10k run, a 6-hour build day. You're capable of more than you feel, and this proves it gently.</p></div>
+    <div class="panel"><span class="eyebrow">Fresh starts · Milkman</span><h3>Reset points</h3><p>Every Monday, 1st of the month and new Islamic month shows a clean-slate card. Falling off always has an obvious way back in.</p></div>
+  </div>
+</section>
+
+<!-- ============ BARAKAH ============ -->
+<section id="barakah">
+  <div class="sec-head">
+    <span class="eyebrow">The barakah layer · The Productive Muslim, Mohammed Faris</span>
+    <h2>Focus × energy × time. Barakah multiplies all three.</h2>
+    <p class="lede">Faris's book looks at productivity through three lenses: spiritual, physical and social. Zain OS was already strong on the first two. These additions fill the gaps, mostly the social lens and the practices that bring barakah. None of them adds a daily minimum, so the streak stays exactly as simple as before.</p>
+  </div>
+  <div class="grid-3">
+    <div class="panel"><span class="eyebrow">Spiritual · after Fajr</span><h3>Ask for barakah by name</h3><p class="ar" style="font-size:20px;line-height:1.8;text-align:right;color:var(--fg)">اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا</p><p>After the salam at Fajr: "O Allah, I ask You for beneficial knowledge, good provision and accepted deeds" (Ibn Mājah 925). Every Big Rock starts with <span class="key">Bismillah</span>, shown on the Start button.</p></div>
+    <div class="panel"><span class="eyebrow">Spiritual · daily</span><h3>Daily sadaqah</h3><p>A small amount every day, automated so it never depends on memory. "Charity does not decrease wealth" (Muslim 2588). It's a daily target, and separate from the weekly sadaqah stake.</p></div>
+    <div class="panel"><span class="eyebrow">Spiritual · focus training</span><h3>Khushu rating</h3><p>Your salah is five attention-training sessions a day. Muhasaba gets one 1–3 tap for khushu, and the weekly review shows which prayer is weakest so you can work on it.</p></div>
+    <div class="panel"><span class="eyebrow">Physical · energy</span><h3>Energy heatmap</h3><p>One tap after each focus block (low, okay, high). After two weeks the app shows when you're actually sharp, and the Big Rock moves to your real peak if 07:30 isn't it.</p></div>
+    <div class="panel"><span class="eyebrow">Physical · food</span><h3>The one-third rule</h3><p>"A third for food, a third for drink, a third for air" (al-Tirmidhī 2380). A light lunch before qailulah protects Deep Work 3 from the post-lunch slump. This is what "clean eating day" means here.</p></div>
+    <div class="panel"><span class="eyebrow">Physical · optional</span><h3>Sunnah fast</h3><p>From week 5, one Monday or Thursday fast a week as a Hard Mode option (al-Tirmidhī 747). On fast days, keep the workout light and the Big Rock early.</p></div>
+    <div class="panel"><span class="eyebrow">Social · weekly</span><h3>Minimum in every role</h3><p>A Sunday roles check: family time most evenings, a call or visit to parents and kin, one act of service at the masjid or in the community, and one thank-you to someone on the team. No role goes to zero.</p></div>
+    <div class="panel"><span class="eyebrow">Social · decisions</span><h3>Istikhara + shura</h3><p>For big decisions (a new WIG, a hire, a large spend or a new project): pray istikhara, consult one trusted person, and sleep on it. This is built into the Dec 20 cycle review.</p></div>
+    <div class="panel"><span class="eyebrow">Growth · monthly</span><h3>30-day upgrades</h3><p>From week 5, each month adds one upgrade challenge: for example Tahajjud three nights a week, then the Monday/Thursday fast, then a Qur'an target. One upgrade at a time, never three.</p></div>
+  </div>
+  <div class="quote">
+    <p class="ar">مَنْ سَرَّهُ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ</p>
+    <p>"Whoever would love for his provision to be expanded and his life to be extended, let him maintain the ties of kinship."</p>
+    <cite>Ṣaḥīḥ al-Bukhārī 5986</cite>
+  </div>
+</section>
+
+<!-- ============ CADENCE ============ -->
+<section id="cadence">
+  <div class="sec-head">
+    <span class="eyebrow">Cadence of accountability · 4DX × 12 Week Year</span>
+    <h2>Daily, weekly, monthly, cycle.</h2>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Rhythm</th><th>What happens</th><th>Time</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Morning</strong></td><td>Mushāraṭa: niyyah, identity line, confirm plan</td><td>1 min</td></tr>
+      <tr><td><strong>Each salah</strong></td><td>Murāqaba: checkpoint tap</td><td>10 sec</td></tr>
+      <tr><td><strong>After Isha</strong></td><td>Muḥāsaba: tick → energy → what went well (goes to the Cookie Jar) → what didn't and why (forgot, procrastinated, tired, overcommitted, distracted) → what do I own about today? → shukr/istighfar. <em>Then plan:</em> the Focusing Question ("What's the ONE thing tomorrow that makes everything else easier?"), top 3, the Big Rock's first action, one if-then.</td><td>5 min</td></tr>
+      <tr><td><strong>Fri + Sat</strong></td><td>Maker Blocks: your personal project, about 4 hrs a week. This is a weekly target (≥ 3 hrs), never a daily minimum. End each block by writing the next step, so the project stops nagging you during the week (Masicampo &amp; Baumeister).</td><td>2 + 1.75 hrs</td></tr>
+      <tr><td><strong>Sunday</strong></td><td>Weekly review (auto-drafted): three numbers, patterns, one experiment, grow or shrink a minimum, <strong>roles check</strong> (family, parents &amp; kin, community, team) and the energy heatmap → partner call (the 12 Week Year's Weekly Accountability Meeting)</td><td>30 + 15 min</td></tr>
+      <tr><td><strong>1st Sunday</strong></td><td>Monthly check: <strong>outcome scorecard</strong> (see Outcomes) + TekScrum strategy/OKR review</td><td>60–90 min</td></tr>
+      <tr><td><strong>Dec 20</strong></td><td>Cycle review: how many of 12 weeks were won, then pick the Cycle 2 WIG from the Parked list</td><td>2 hrs</td></tr>
+    </tbody>
+  </table></div>
+  <div class="grid-2">
+    <div class="panel"><span class="eyebrow">Three numbers only · Hormozi, 4DX</span>
+      <ul><li><span class="key">🔥 Streak</span>: consecutive kept days</li><li><span class="key">Deep-work hours</span> this week: the engine behind the WIG</li><li><span class="key">Weekly score</span>: % of targets hit (a win is ≥ 85% from week 3)</li></ul></div>
+    <div class="panel"><span class="eyebrow">TekScrum meetings · all inside 11:30–13:15</span>
+      <ul><li>Daily 09:30: sales standup + LinkedIn post</li><li>Mon: sales kickoff · Tue + Thu: PM updates · Thu: SEO team</li><li>1st Sunday: strategy/OKR · 1st/3rd Tue: salon, QA textile <em>(confirm these are still active)</em></li><li>Your number: 3 revenue actions a day. The team's number: outreach volume (Hormozi's Rule of 100 applies to the team, not the CEO)</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ OUTCOMES ============ -->
+<section id="outcomes">
+  <div class="sec-head">
+    <span class="eyebrow">Monthly outcome scorecard · 4DX lead vs lag · 12 Week Year</span>
+    <h2>The daily numbers show effort. These show whether it's working.</h2>
+    <p class="lede">Your daily and weekly numbers track what you do. Once a month you check what actually changed. If the effort is high and these numbers don't move, the plan is wrong, not you. Eight numbers, one per area. The app fills in the ones marked <span class="key">auto</span> from your logs; you type in the rest.</p>
+  </div>
+  <div class="grid-3">
+    <div class="panel"><span class="eyebrow">Check dates</span><p><span class="key">Baseline: Sun Oct 4</span> (end of week 1) · <span class="key">Sun Nov 1</span> · <span class="key">Sun Dec 6</span> · <span class="key">Sun Dec 20</span> cycle review</p></div>
+    <div class="panel"><span class="eyebrow">How long it takes</span><p>About 10 minutes, as the first part of the monthly check. Auto numbers are already there; you type in four or five.</p></div>
+    <div class="panel"><span class="eyebrow">Rule</span><p>Set each Dec 20 target on Oct 4, from your real baseline. Don't guess today. Targets are changed only at a monthly check, never mid-month.</p></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Area</th><th>Outcome</th><th>How it's measured</th><th>Suggested Dec 20 target</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Build · WIG</strong></td><td>Apps live</td><td>Manual · count of apps live in a store and usable</td><td><span class="mono">5</span></td></tr>
+      <tr><td><strong>Build · WIG</strong></td><td>App revenue this month</td><td>Manual · from store / Stripe dashboards</td><td>First paying users on ≥ 1 app; set the amount on Oct 4</td></tr>
+      <tr><td><strong>Business</strong></td><td>TekScrum revenue this month + deals closed</td><td>Manual · from accounts / CRM</td><td>Set on Oct 4 from your baseline</td></tr>
+      <tr><td><strong>Body</strong></td><td>5k run time</td><td>Manual · a timed 5k on the first run day of each month</td><td>About 10% faster than your baseline</td></tr>
+      <tr><td><strong>Body</strong></td><td>Weight or waist</td><td>Manual · same scale or tape, morning, before breakfast</td><td>Your choice of direction; set on Oct 4</td></tr>
+      <tr><td><strong>Deen</strong></td><td>Qur'an pages · Tahajjud nights · salah on time %</td><td><span class="mono">auto</span> · from checkpoint taps</td><td>≥ 120 pages/month · ≥ 10 Tahajjud nights/month · 100% on time</td></tr>
+      <tr><td><strong>Arabic</strong></td><td>Qur'anic words known</td><td>Manual · the count in your vocab deck or notebook</td><td>About +300 words by Dec 20 (≈ 3–4 new words a day at 10–20 min)</td></tr>
+      <tr><td><strong>Growth + social</strong></td><td>Books finished · roles-check weeks all green</td><td><span class="mono">auto</span> + a tap when you finish a book</td><td>3 books · roles check green in ≥ 3 of 4 weeks</td></tr>
+    </tbody>
+  </table></div>
+  <div class="grid-2">
+    <div class="panel"><span class="eyebrow">Effort high · outcomes moving</span><h3>Keep going</h3><p>The plan works. Don't change anything. Consider a 30-day upgrade.</p></div>
+    <div class="panel"><span class="eyebrow">Effort high · outcomes flat (2 months)</span><h3>Change the strategy</h3><p>You're doing the work, but it's the wrong work. Change what you do each day (e.g. more distribution instead of more features for the apps). Discuss it with your partner and pray istikhara if it's a big change.</p></div>
+    <div class="panel"><span class="eyebrow">Effort low · outcomes flat</span><h3>Fix the system, not the goal</h3><p>This is an execution problem. Shrink the minimum that keeps breaking, check your sleep, and look at what the barrier was in muhasaba. Don't lower the target yet.</p></div>
+    <div class="panel"><span class="eyebrow">Effort low · outcomes moving</span><h3>Look closer</h3><p>Something else is driving the result (a lucky deal, the team). Enjoy it, but don't let it hide a slipping routine.</p></div>
+  </div>
+</section>
+
+<!-- ============ LAWS ============ -->
+<section id="laws">
+  <div class="sec-head">
+    <span class="eyebrow">The 12 laws of Zain OS</span>
+    <h2>Thirty-one books, boiled down to twelve rules you can remember at 5 AM.</h2>
+  </div>
+  <div class="laws">
+    <div class="law"><div><b>Salah is the schedule.</b><span>Every habit is anchored to a prayer you already never miss.</span></div></div>
+    <div class="law"><div><b>Never miss twice.</b><span>One miss is an accident. Two is the start of a new habit.</span></div></div>
+    <div class="law"><div><b>Big Rock before messages.</b><span>No feeds, news or inbox until 90 minutes of deep work are done.</span></div></div>
+    <div class="law"><div><b>Decide at night, execute at dawn.</b><span>The morning never gets a vote on whether to start.</span></div></div>
+    <div class="law"><div><b>Minimum on bad days, target on good days.</b><span>Consistency beats intensity. The most beloved deeds are the consistent ones.</span></div></div>
+    <div class="law"><div><b>One goal per cycle.</b><span>Everything else is parked, not forgotten. It gets its turn on Dec 20.</span></div></div>
+    <div class="law"><div><b>Track inputs, not feelings.</b><span>Hours, reps, actions shipped. Feelings follow the numbers.</span></div></div>
+    <div class="law"><div><b>Make starting stupidly easy.</b><span>5-4-3-2-1. Just five minutes. The first 2 minutes are the whole battle.</span></div></div>
+    <div class="law"><div><b>The phone sleeps outside.</b><span>Out of the bedroom, off the dinner table, silent during the Big Rock.</span></div></div>
+    <div class="law"><div><b>Celebrate every tap.</b><span>Alhamdulillah. A habit is wired in by the feeling right after it.</span></div></div>
+    <div class="law"><div><b>Someone sees the score.</b><span>Every Sunday, one person you respect sees the truth.</span></div></div>
+    <div class="law"><div><b>Rest is part of the work.</b><span>Qailulah, Sunday, and sleep straight after Isha.</span></div></div>
+  </div>
+  <div class="quote">
+    <p class="ar">أَحَبُّ الْأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ</p>
+    <p>"The most beloved of deeds to Allah are the most consistent of them, even if they are small."</p>
+    <cite>Ṣaḥīḥ al-Bukhārī 6464 · Ṣaḥīḥ Muslim 783</cite>
+  </div>
+</section>
+
+<!-- ============ LIBRARY ============ -->
+<section id="library">
+  <div class="sec-head">
+    <span class="eyebrow">The library · 31 books distilled</span>
+    <h2>The core idea, the practical move, and where it lives in your system.</h2>
+    <p class="lede">For each book: the one idea that matters, the thing you actually do, and the exact feature or rule in Zain OS that puts it to work. Nothing here is decoration. If it's on this page, it's in the system.</p>
+  </div>
+  <div class="filters" id="filters" role="group" aria-label="Filter books">
+    <button type="button" aria-pressed="true" data-f="all">All 31</button>
+    <button type="button" aria-pressed="false" data-f="habits">Habits</button>
+    <button type="button" aria-pressed="false" data-f="morning">Mornings</button>
+    <button type="button" aria-pressed="false" data-f="focus">Focus</button>
+    <button type="button" aria-pressed="false" data-f="execution">Execution</button>
+    <button type="button" aria-pressed="false" data-f="discipline">Discipline</button>
+    <button type="button" aria-pressed="false" data-f="motivation">Motivation design</button>
+    <button type="button" aria-pressed="false" data-f="life">Business &amp; life</button>
+    <button type="button" aria-pressed="false" data-f="deen">Deen</button>
+  </div>
+  <div class="lib" id="lib"></div>
+</section>
+
+<!-- ============ CONFLICTS ============ -->
+<section id="conflicts">
+  <div class="sec-head">
+    <span class="eyebrow">Where the books disagree</span>
+    <h2>And how your system settles it.</h2>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Tension</th><th>The two sides</th><th>Zain OS decision</th></tr></thead>
+    <tbody>
+      <tr><td>Wake time</td><td>5AM Club: wake at 5 · sleep science: 7–9 hours</td><td>Fajr already wakes you at 05:05. Protect sleep by sleeping straight after Isha (the Prophet ﷺ disliked sleeping before Isha and talking after it, Bukhari 568) plus qailulah.</td></tr>
+      <tr><td>Tahajjud vs sleep</td><td>More night prayer · fewer sleep hours</td><td>Three set nights a week, minimum 1. Lights out at 21:30 the night before, and qailulah is not optional on those days.</td></tr>
+      <tr><td>Intensity</td><td>Goggins/Jocko: go hard · Fogg: go tiny</td><td>Tiny minimums every day. Hard Mode is an optional weekly challenge on top.</td></tr>
+      <tr><td>Streaks</td><td>Clear/Seinfeld: don't break the chain · research: broken chains cause quitting</td><td>Never miss twice, freezes and Bad Day Mode. The chain bends; it doesn't snap.</td></tr>
+      <tr><td>Work cycles</td><td>5AM Club: 60/10 · Newport: 90–120 min blocks</td><td>The timer does both. Default is a 2-hr block, with a 60/10 mode when your energy is low.</td></tr>
+      <tr><td>Daily priorities</td><td>Sharma's Daily 5 · Tracy's frog · Keller's ONE Thing</td><td>One Big Rock (the ONE thing) + a top 3. Five was too many for a CEO's day.</td></tr>
+      <tr><td>Volume</td><td>Hormozi: 100 outreach actions a day · CEO time is limited</td><td>The team carries the volume. You do 3 revenue actions a day and track the team's count.</td></tr>
+      <tr><td>Gamification</td><td>Points drive behavior · ikhlāṣ in worship</td><td>Deen items keep the streak but earn no points or badges. Muhasaba stays between you and Allah.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ APP ============ -->
+<section id="app">
+  <div class="sec-head">
+    <span class="eyebrow">What the app does for you</span>
+    <h2>A coach in your pocket that never forgets the plan.</h2>
+    <p class="lede">An installable web app, under 5 MB, that updates itself. It works offline and syncs between phone and Mac.</p>
+  </div>
+  <div class="grid-3">
+    <div class="panel"><h3>Knows the time</h3><p>Calculates prayer times daily from your location and masjid offsets, and always shows the next checkpoint and the current block.</p></div>
+    <div class="panel"><h3>Reaches out</h3><p>At most 8 well-timed reminders a day, with escalation when you go silent and quiet rules during focus.</p></div>
+    <div class="panel"><h3>Keeps the score honest</h3><p>Streak engine, focus-timer logs as proof, the three numbers, milestones, and a weekly win or loss.</p></div>
+    <div class="panel"><h3>Coaches you</h3><p>Claude reads your logs, spots patterns ("the Big Rock fails when you sleep after 23:00") and suggests one experiment a week.</p></div>
+    <div class="panel"><h3>Protects bad days</h3><p>Bad Day Mode, freezes, the Cookie Jar, and a comeback message the next morning.</p></div>
+    <div class="panel"><h3>Brings a witness</h3><p>Shares your scorecard to WhatsApp on Sunday. Later: a partner view, a Telegram bot and sadaqah stakes.</p></div>
+  </div>
+</section>
+
+<!-- ============ DAY 1 ============ -->
+<section id="start">
+  <div class="sec-head">
+    <span class="eyebrow">Day 1 · one-time setup</span>
+    <h2>Set the environment once. Then let it work for you.</h2>
+    <p class="lede">Make good habits obvious and easy, and bad ones invisible and hard (Clear). Ticks are saved in this browser only.</p>
+  </div>
+  <div class="checks" id="checks">
+    <label><input type="checkbox" id="c1"><span>Confirm the WIG and write one line of niyyah for Cycle 1</span></label>
+    <label><input type="checkbox" id="c2"><span>Write your identity line in your own words</span></label>
+    <label><input type="checkbox" id="c3"><span>Note your masjid's jamaat times for all five prayers</span></label>
+    <label><input type="checkbox" id="c4"><span>Choose your Tahajjud nights (default: Sun, Wed, Fri pre-dawn)</span></label>
+    <label><input type="checkbox" id="c5"><span>Ask one person to be your Sunday accountability partner</span></label>
+    <label><input type="checkbox" id="c6"><span>Alarm clock across the room; phone charger outside the bedroom</span></label>
+    <label><input type="checkbox" id="c7"><span>Running shoes and clothes by the door every night</span></label>
+    <label><input type="checkbox" id="c8"><span>Mushaf and Arabic notebook where you sit after Asr</span></label>
+    <label><input type="checkbox" id="c9"><span>iPhone "Deep Work" Focus mode, weekdays 07:30–09:30 and 10:00–11:30</span></label>
+    <label><input type="checkbox" id="c10"><span>Delete or hide feed apps from the home screen; set two social windows a day</span></label>
+    <label><input type="checkbox" id="c11"><span>Mirror note: the WIG + one line of why</span></label>
+    <label><input type="checkbox" id="c12"><span>Pick tonight's book and put it on your pillow</span></label>
+    <label><input type="checkbox" id="c13"><span>Memorise the morning dua against laziness</span></label>
+    <label><input type="checkbox" id="c14"><span>Tonight after Isha: your first muhasaba + plan for tomorrow</span></label>
+    <label><input type="checkbox" id="c15"><span>By Sun Oct 4: record your baseline outcomes (apps live, revenues, 5k time, weight/waist, Arabic words) and set the Dec 20 targets</span></label>
+  </div>
+  <p class="progress" id="prog">0 / 14 set up</p>
+</section>
+
+<section id="sources">
+  <div class="sec-head"><span class="eyebrow">Research behind the rules</span></div>
+  <div class="sources">
+    <span>Harkin et al. 2016, progress monitoring meta-analysis — <a href="https://www.apa.org/pubs/journals/releases/bul-bul0000025.pdf">APA</a></span>
+    <span>Gollwitzer &amp; Sheeran 2006, implementation intentions — <a href="https://www.researchgate.net/publication/37367696_Implementation_Intentions_and_Goal_Achievement_A_Meta-Analysis_of_Effects_and_Processes">ResearchGate</a></span>
+    <span>Milkman et al. 2021, gym megastudy — <a href="https://www.nature.com/articles/s41586-021-04128-4">Nature</a></span>
+    <span>Silverman &amp; Barasch 2023, broken streaks — <a href="https://ideas.repec.org/a/eee/jobhdp/v179y2023ics0749597823000572.html">OBHDP</a></span>
+    <span>Singh et al. 2024, time to form a habit — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11641623/">PMC</a></span>
+    <span>Masicampo &amp; Baumeister 2011, plan-making — <a href="https://users.wfu.edu/masicaej/MasicampoBaumeister2011JPSP.pdf">JPSP</a> · Scullin et al. 2018, bedtime to-do lists — <a href="https://pubmed.ncbi.nlm.nih.gov/29058942/">PubMed</a></span>
+    <span>Giné, Karlan &amp; Zinman 2010, commitment contracts — <a href="https://www.aeaweb.org/articles?id=10.1257%2Fapp.2.4.213">AEA</a></span>
+    <span>Steel 2007, procrastination — <a href="https://pubmed.ncbi.nlm.nih.gov/17201571/">PubMed</a></span>
+  </div>
+</section>
+
+<footer><span>ZAIN OS · PLAYBOOK v5.2</span><span>Consistent, even if small.</span></footer>
+</main>
+
+<script>
+(function(){
+  var KHI='Asia/Karachi';
+  function nowKarachi(){
+    try{
+      var p=new Intl.DateTimeFormat('en-GB',{timeZone:KHI,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());
+      var o={};p.forEach(function(x){o[x.type]=x.value});
+      return {y:+o.year,m:+o.month,d:+o.day,min:(+o.hour%24)*60+(+o.minute)};
+    }catch(e){var n=new Date();return {y:n.getFullYear(),m:n.getMonth()+1,d:n.getDate(),min:n.getHours()*60+n.getMinutes()};}
+  }
+  var N=nowKarachi();
+
+  /* cycle day */
+  var start=Date.UTC(2026,8,28), today=Date.UTC(N.y,N.m-1,N.d);
+  var day=Math.floor((today-start)/864e5)+1;
+  var cd=document.getElementById('cycleDay'), cw=document.getElementById('cycleWeek');
+  if(day<1){cd.textContent='Starts Sep 28';cw.textContent='0 / 12';}
+  else if(day>84){cd.textContent='Complete';cw.textContent='12 / 12';}
+  else{cd.textContent=day+' / 84';cw.textContent=Math.ceil(day/7)+' / 12';}
+
+  /* day arc, drawn to scale: x = minutes from 04:30 to 22:30 */
+  var svg=document.getElementById('arc'), NS='http://www.w3.org/2000/svg';
+  var X0=40,X1=920,T0=270,T1=1350,HZ=170,AMP=120;
+  var SR=383,SS=1102; /* sunrise 06:23, sunset 18:22 */
+  function x(t){return X0+(t-T0)/(T1-T0)*(X1-X0)}
+  function y(t){ if(t<=SR||t>=SS){var d=t<SR?(SR-t):(t-SS);return HZ+Math.min(34,d*0.22);} return HZ-AMP*Math.sin(Math.PI*(t-SR)/(SS-SR)); }
+  function el(n,a,parent){var e=document.createElementNS(NS,n);for(var k in a){var v=a[k];if(typeof v==='string'&&v.indexOf('var(')===0){e.style.setProperty(k,v);}else{e.setAttribute(k,v);}}(parent||svg).appendChild(e);return e}
+  function tok(n){return 'var('+n+')'}
+  /* night bands */
+  el('rect',{x:x(T0),y:20,width:x(SR)-x(T0),height:200,fill:tok('--night'),opacity:.55});
+  el('rect',{x:x(SS),y:20,width:x(T1)-x(SS),height:200,fill:tok('--night'),opacity:.55});
+  /* hour grid */
+  for(var h=5;h<=22;h++){var t=h*60;el('line',{x1:x(t),x2:x(t),y1:24,y2:214,stroke:tok('--line'),'stroke-width':1});
+    if(h%2===1){var tx=el('text',{x:x(t),y:238,'text-anchor':'middle','font-family':'JetBrains Mono, monospace','font-size':11,fill:tok('--faint')});tx.textContent=(h<10?'0':'')+h+':00';}}
+  /* big rock + deep work bands */
+  [[450,570,'Big Rock'],[600,690,'DW 2'],[870,930,'DW 3']].forEach(function(b,i){
+    el('rect',{x:x(b[0]),y:HZ+6,width:x(b[1])-x(b[0]),height:14,rx:3,fill:tok('--gold'),opacity:i===0?.9:.45});
+    var tt=el('text',{x:(x(b[0])+x(b[1]))/2,y:HZ+36,'text-anchor':'middle','font-family':'JetBrains Mono, monospace','font-size':10.5,fill:tok('--gold')});tt.textContent=b[2];
+  });
+  /* horizon */
+  el('line',{x1:X0,x2:X1,y1:HZ,y2:HZ,stroke:tok('--line-2'),'stroke-width':1});
+  /* sun path */
+  var d='';for(var t2=T0;t2<=T1;t2+=5){d+=(t2===T0?'M':'L')+x(t2).toFixed(1)+' '+y(t2).toFixed(1)+' ';}
+  el('path',{d:d,fill:'none',stroke:tok('--gold-dim'),'stroke-width':1.5,'stroke-dasharray':'3 4'});
+  /* tahajjud + sleep */
+  [[285,'Tahajjud'],[1305,'Sleep 21:45']].forEach(function(m){
+    el('circle',{cx:x(m[0]),cy:y(m[0]),r:4,fill:tok('--muted')});
+    var tt=el('text',{x:x(m[0]),y:y(m[0])+22,'text-anchor':'middle','font-family':'JetBrains Mono, monospace','font-size':10.5,fill:tok('--muted')});tt.textContent=m[1];
+  });
+  /* salah markers */
+  var S=[[330,'Fajr','05:30'],[795,'Dhuhr','13:15'],[1020,'Asr','17:00'],[1105,'Maghrib','18:25'],[1215,'Isha','20:15']];
+  S.forEach(function(s,i){
+    var cx=x(s[0]),cy=y(s[0]);
+    el('circle',{cx:cx,cy:cy,r:11,fill:tok('--gold-glow'),stroke:tok('--gold'),'stroke-width':1.5});
+    el('circle',{cx:cx,cy:cy,r:4,fill:tok('--gold')});
+    var above = !(s[1]==='Asr');
+    var ly = above ? cy-20 : cy+26;
+    if(s[1]==='Maghrib') ly=cy-20;
+    var ax=(s[1]==='Maghrib')?cx+8:cx, an=(s[1]==='Maghrib')?'start':'middle';
+    var t1=el('text',{x:ax,y:ly,'text-anchor':an,'font-family':'Cormorant Garamond, Georgia, serif','font-size':19,'font-weight':600,fill:tok('--fg')});t1.textContent=s[1];
+    var t3=el('text',{x:ax,y:ly+(above?-17:16),'text-anchor':an,'font-family':'JetBrains Mono, monospace','font-size':10.5,fill:tok('--faint')});t3.textContent=s[2];
+  });
+  /* now marker */
+  if(N.min>=T0&&N.min<=T1){
+    var nx=x(N.min);
+    el('line',{x1:nx,x2:nx,y1:22,y2:214,stroke:tok('--gold'),'stroke-width':1.2,'stroke-dasharray':'2 3'});
+    var nc=el('circle',{cx:nx,cy:y(N.min),r:6,fill:tok('--gold'),'class':'now-pulse'});
+    var hh=Math.floor(N.min/60),mm=N.min%60;
+    var nt=el('text',{x:Math.min(nx+8,X1-60),y:34,'font-family':'JetBrains Mono, monospace','font-size':11,fill:tok('--gold')});nt.textContent='NOW '+(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;
+  }
+  /* next checkpoint highlight */
+  var cps=[].slice.call(document.querySelectorAll('.cp')), nextDone=false;
+  cps.forEach(function(c){ if(!nextDone && +c.dataset.t+30>=N.min){c.classList.add('is-next');nextDone=true;} });
+
+  /* library */
+  var B=[
+    ['habits','Atomic Habits','James Clear','Habits are votes for the person you want to become. Systems beat goals.','Four laws: make it obvious, attractive, easy, satisfying. Stack habits onto existing ones, use the 2-minute rule, never miss twice, design your environment.','Salah-anchored checkpoints · 2-minute minimums · identity line · Day 1 setup · never-miss-twice rule'],
+    ['habits','Tiny Habits','BJ Fogg','Behavior = Motivation × Ability × Prompt. Motivation is unreliable, so shrink the behavior.','"After I [anchor], I will [tiny behavior]", then celebrate instantly to wire it in.','"After Asr, I open my Arabic notebook" · Alhamdulillah celebration on every tap · phase-in weeks'],
+    ['habits','The Power of Habit','Charles Duhigg','Cue → routine → reward, powered by craving. Keystone habits pull others along.','Pick keystone habits: exercise, daily planning, family dinner. Stack small wins.','Keystones built in: Fajr movement, Isha plan, Maghrib family dinner'],
+    ['habits','The Compound Effect','Darren Hardy','Small smart choices × consistency × time = radical results.','Track everything for a while. Bookend the day with morning and evening routines. Protect momentum ("Big Mo").','Victory Hour + Isha shutdown as bookends · the streak is momentum made visible'],
+    ['morning','The 5AM Club','Robin Sharma','Own your morning, elevate your life. The first hour is the Victory Hour.','20/20/20 (Move, Reflect, Grow) · no tech in the first hour · 90/90/1 · 60/10 work cycles · Twin Cycles of push and deep recovery.','Fajr Victory Hour · Big Rock 90 min at 07:30 for 84 days · 60/10 timer mode · qailulah + Sunday recovery'],
+    ['morning','The Miracle Morning','Hal Elrod','A deliberate morning routine sets the whole day.','SAVERS: Silence, Affirmations, Visualization, Exercise, Reading, Scribing.','SAVERS mapped onto Fajr: dhikr, identity + dua, Why Card, run, Qur\'an, confirm plan'],
+    ['focus','Deep Work','Cal Newport','Focused, distraction-free work is rare and valuable.','Schedule depth in a fixed rhythm. About 4 hrs a day is the ceiling. End with a shutdown ritual. Don\'t reach for the phone at every pause.','Fixed Big Rock blocks · 4-hr cap · Isha shutdown · Focus mode'],
+    ['focus','Digital Minimalism','Cal Newport','Use technology on purpose, not by default.','Remove optional apps, set windows for social media, keep the phone away from meals and bed.','Phone rules: no feeds before the Big Rock, two social windows, phone out of the bedroom and away at dinner'],
+    ['focus','Indistractable','Nir Eyal','Distraction starts inside you. Manage the urge, then timebox your values and make pacts.','Timebox the whole day, not just tasks. Effort, price and identity pacts.','Time-blocked day · Focus mode (effort) · sadaqah stake (price) · identity line (identity)'],
+    ['focus','The ONE Thing','Gary Keller','Extraordinary results come from going narrow.','Ask the Focusing Question. Block time for your ONE thing before anything else.','The evening plan asks the Focusing Question to choose tomorrow\'s Big Rock'],
+    ['focus','Eat That Frog','Brian Tracy','Do your hardest, most important task first.','Plan the night before · 80/20 · ABCDE priorities.','Big Rock at 07:30, before the inbox and before ops'],
+    ['focus','Essentialism','Greg McKeown','Less, but better.','If it isn\'t a clear yes, it\'s a no. Build in buffer. Routinise the essentials.','Parked list · daily buffer block · max 3 active projects'],
+    ['focus','Make Time','Knapp & Zeratsky','Choose one Highlight a day, focus on it, recharge, reflect.','Pick a daily Highlight and put friction on distractions.','The Big Rock is your daily Highlight · evening reflection'],
+    ['execution','The 12 Week Year','Brian Moran','Twelve weeks is a year. Urgency comes from a short horizon.','12-week goals · weekly plan · weekly scorecard · 85% execution = success · Weekly Accountability Meeting.','Cycle 1 (84 days) · weekly score · 85% win line · Sunday partner call'],
+    ['execution','The 4 Disciplines of Execution','McChesney, Covey & Huling','Execution beats strategy when day-to-day urgencies are loud.','Wildly important goal · lead measures · a compelling scoreboard · a cadence of accountability.','One WIG · three numbers · Sunday cadence'],
+    ['execution','The 7 Habits','Stephen Covey','Effectiveness is built on principles.','Begin with the end in mind · put first things first (important but not urgent) · sharpen the saw across physical, spiritual, mental and social.','Goal hierarchy + niyyah · Big Rock · four pillars + family at Maghrib'],
+    ['discipline','Can\'t Hurt Me','David Goggins','You\'re capable of far more than you think, and you build it by doing hard things.','Accountability mirror · Cookie Jar of past wins · the 40% rule · callus the mind.','Mirror note · Cookie Jar · weekly Hard Mode'],
+    ['discipline','Discipline Equals Freedom','Jocko Willink','Discipline is the path to freedom.','Wake up and go. Don\'t negotiate. Meet setbacks with "Good."','Plan locked the night before · alarm across the room · "Good. Comeback day."'],
+    ['discipline','Extreme Ownership','Willink & Babin','Own everything in your world. No excuses.','After a failure, ask what you own and fix the system.','Muhasaba question: "What do I own about today?"'],
+    ['discipline','Grit','Angela Duckworth','Passion plus perseverance over time beats talent.','A goal hierarchy from purpose to daily tasks · deliberate practice on your weak points.','Why → Who → What hierarchy · Arabic practised daily on the hardest words'],
+    ['discipline','Mindset','Carol Dweck','Abilities grow with effort.','Say "not yet" instead of "can\'t". Praise the process.','The coach praises effort · Arabic progress reads "not yet"'],
+    ['discipline','The 5 Second Rule','Mel Robbins','Hesitation kills action.','Count 5-4-3-2-1 and move before your brain talks you out of it.','5-4-3-2-1 → Start button on the Big Rock'],
+    ['motivation','Hooked','Nir Eyal','Habit-forming products run one loop: trigger, action, variable reward, investment.','One tiny action per trigger. Vary the rewards. Ask for a small investment that sets up the next trigger.','Adhan → one tap → flame, milestone or coach line → tonight\'s plan'],
+    ['motivation','Drive','Daniel Pink','Autonomy, mastery and purpose outlast carrots and sticks.','Choose your own rules, see your progress, connect work to purpose.','You set the stakes and rules · progress views · niyyah on every block'],
+    ['motivation','How to Change','Katy Milkman','Match the tool to the specific barrier.','Fresh starts · temptation bundling · commitment devices · flexible goals with emergency passes.','Reset points · audio only during workouts · sadaqah stakes · freezes'],
+    ['life','$100M Leads','Alex Hormozi','Volume solves most business problems.','The Rule of 100: 100 lead-generation actions a day for 100 days. Track inputs.','The team carries outreach volume · your 3 revenue actions a day · things shipped'],
+    ['life','Four Thousand Weeks','Oliver Burkeman','Life is short and you\'ll never do it all.','Limit work in progress to about 3. Pay yourself first in time. Decide what to neglect.','One WIG + one keep-alive + one maintenance project · Big Rock first'],
+    ['life','Why We Sleep','Matthew Walker','Sleep underlies energy, mood and learning.','Regular sleep and wake times, 7+ hours, a dark and cool room. Some of the book\'s claims are disputed; these basics hold.','In bed by 21:45 after Isha · qailulah · sleep time logged in muhasaba'],
+    ['deen','Iḥyāʾ ʿUlūm al-Dīn','al-Ghazālī · Book of Murāqaba & Muḥāsaba','Six stations of self-discipline.','Set terms with the self in the morning, watch it through the day, account at night, apply a consequence, strive, reproach honestly.','The operating loop: morning confirm → checkpoints → muhasaba → stakes → Hard Mode → Sunday review'],
+    ['deen','The Productive Muslim','Mohammed Faris','Productivity = focus × energy × time, and barakah multiplies all three. It has spiritual, physical and social dimensions.','Plan the day around salah. Guard the post-Fajr hours and qailulah. Eat by the one-third rule. Map your energy through the day. Keep a minimum level in every role (family, community, work). Draw barakah through dua, dhikr, sadaqah, ties of kinship and avoiding sins.','Salah checkpoints · barakah dua after Fajr · energy heatmap · daily sadaqah · weekly roles check · 1/3 eating · istikhara + shura for big decisions'],
+    ['deen','al-Fawāʾid','Ibn al-Qayyim','Time is your life. Wasting it cuts you off from Allah and the Hereafter.','Guard the hours. Value small deeds done consistently.','Time-blocked day · consistency over intensity · Deen minimums every single day']
+  ];
+  var lib=document.getElementById('lib');
+  var labels={habits:'Habits',morning:'Mornings',focus:'Focus',execution:'Execution',discipline:'Discipline',motivation:'Motivation design',life:'Business & life',deen:'Deen'};
+  B.forEach(function(b){
+    var a=document.createElement('article');a.className='book';a.dataset.cat=b[0];
+    a.innerHTML='<header><span class="cat"></span><h3></h3><span class="by"></span></header><p class="gist"></p><dl><div><dt>Practical move</dt><dd class="pm"></dd></div><div><dt>In Zain OS</dt><dd class="os"></dd></div></dl>';
+    a.querySelector('.cat').textContent=labels[b[0]];
+    a.querySelector('h3').textContent=b[1];
+    a.querySelector('.by').textContent=b[2];
+    a.querySelector('.gist').textContent=b[3];
+    a.querySelector('.pm').textContent=b[4];
+    a.querySelector('.os').textContent=b[5];
+    lib.appendChild(a);
+  });
+  var fb=[].slice.call(document.querySelectorAll('#filters button'));
+  fb.forEach(function(btn){btn.addEventListener('click',function(){
+    fb.forEach(function(o){o.setAttribute('aria-pressed',o===btn?'true':'false')});
+    var f=btn.dataset.f;
+    [].forEach.call(lib.children,function(c){c.hidden=!(f==='all'||c.dataset.cat===f)});
+  })});
+
+  /* checklist persistence (this browser only) */
+  var KEY='zainos-day1-v1', saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){saved={}}
+  var boxes=[].slice.call(document.querySelectorAll('#checks input'));
+  function upd(){var n=boxes.filter(function(b){return b.checked}).length;document.getElementById('prog').textContent=n+' / '+boxes.length+' set up'+(n===boxes.length?' · Bismillah, you\'re ready.':'');}
+  boxes.forEach(function(b){b.checked=!!saved[b.id];b.addEventListener('change',function(){saved[b.id]=b.checked;try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}upd();});});
+  upd();
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0F0F0F;
+  --surface: #171615;
+  --card: #201F1D;
+  --elevated: #2A2825;
+  --line: #2F2C28;
+  --line-strong: #3D3830;
+  --fg: #F3F0EA;
+  --muted: #AAA59C;
+  --faint: #6E6961;
+  --gold: #C8A96E;
+  --gold-dim: #8A6F3E;
+  --gold-glow: rgba(200, 169, 110, 0.13);
+  --night: #0D1524;
+  --ok: #4CAF7D;
+  --warn: #E8A838;
+  --bad: #E85C5C;
+  --frozen: #6F8FC7;
+
+  /* shadcn mapping */
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card-bg: var(--card);
+  --card-foreground: var(--fg);
+  --popover: var(--elevated);
+  --popover-foreground: var(--fg);
+  --primary: var(--gold);
+  --primary-foreground: var(--bg);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--fg);
+  --muted-bg: var(--surface);
+  --muted-foreground: var(--muted);
+  --accent: var(--gold);
+  --accent-foreground: var(--bg);
+  --destructive: var(--bad);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--gold);
+  --radius: 12px;
+}
+
+[data-theme="light"] {
+  --bg: #F2F0EB;
+  --surface: #E9E6DF;
+  --card: #FBFAF7;
+  --elevated: #FFFFFF;
+  --line: #D9D4C9;
+  --line-strong: #C9C2B3;
+  --fg: #1B1914;
+  --muted: #5C5647;
+  --faint: #8C8575;
+  --gold: #8C6A2A;
+  --gold-dim: #B39359;
+  --gold-glow: rgba(140, 106, 42, 0.10);
+  --night: #E3E7EF;
+  --ok: #2E7D55;
+  --warn: #A86A06;
+  --bad: #B53A3A;
+  --frozen: #4E6FA8;
+
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card-bg: var(--card);
+  --card-foreground: var(--fg);
+  --popover: var(--elevated);
+  --popover-foreground: var(--fg);
+  --primary: var(--gold);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--surface);
+  --secondary-foreground: var(--fg);
+  --muted-bg: var(--surface);
+  --muted-foreground: var(--muted);
+  --accent: var(--gold);
+  --accent-foreground: #FFFFFF;
+  --destructive: var(--bad);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--gold);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-elevated: var(--elevated);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-gold-glow: var(--gold-glow);
+  --color-night: var(--night);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-frozen: var(--frozen);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --font-display: var(--font-cormorant), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-body: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-arabic: var(--font-amiri), "Amiri", "Geeza Pro", "Traditional Arabic", serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.font-arabic {
+  font-family: var(--font-arabic);
+  direction: rtl;
+  unicode-bidi: isolate;
+}
