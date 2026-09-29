@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -62,6 +62,12 @@ export function MuhasabaSheet({
 }: MuhasabaSheetProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setStep(1);
+    }
+  }, [open]);
 
   // Step 2 Form State
   const [energy, setEnergy] = useState<number>(3);
@@ -155,24 +161,24 @@ export function MuhasabaSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed inset-0 z-50 max-w-lg w-full h-[100dvh] p-0 bg-neutral-950 text-white flex flex-col border-none overflow-hidden focus:outline-none">
+      <DialogContent className="max-w-[440px] w-[95vw] h-[90dvh] max-h-[820px] p-0 bg-[#0e0d0c] text-[var(--fg)] border border-[var(--line)] rounded-[24px] flex flex-col overflow-hidden shadow-2xl focus:outline-none gap-0 [&>button]:hidden">
         <DialogTitle className="sr-only">Muhasaba and Plan Flow</DialogTitle>
 
         {/* Top Header */}
-        <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-white/5 bg-neutral-900/60 backdrop-blur-md">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[var(--line)] bg-[#141210]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-emerald-400 font-semibold uppercase tracking-wider">
+              <span className="font-mono text-xs text-[var(--gold)] font-semibold uppercase tracking-wider">
                 Step {step} of 3
               </span>
-              <span className="text-neutral-600">·</span>
-              <span className="text-xs text-neutral-400">
+              <span className="text-[var(--faint)]">·</span>
+              <span className="text-xs text-[var(--muted)]">
                 {step === 1 && 'Tick Habits'}
                 {step === 2 && 'Evening Muhasaba'}
                 {step === 3 && 'Plan Tomorrow'}
               </span>
             </div>
-            <h2 className="font-cormorant text-2xl font-semibold text-white tracking-wide mt-0.5">
+            <h2 className="font-cormorant text-2xl font-semibold text-[var(--fg)] tracking-wide mt-0.5">
               {step === 1 && 'Confirm Today’s Taps'}
               {step === 2 && 'Self-Accounting (Muhasaba)'}
               {step === 3 && 'Decide at Night, Execute at Dawn'}
@@ -181,9 +187,9 @@ export function MuhasabaSheet({
 
           <button
             onClick={() => onOpenChange(false)}
-            className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[var(--muted)] hover:text-[var(--fg)] transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -192,7 +198,7 @@ export function MuhasabaSheet({
           {/* STEP 1: TICK */}
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-[var(--muted)]">
                 Review and adjust your habits logged today before closing the day.
               </p>
 
@@ -205,13 +211,13 @@ export function MuhasabaSheet({
                   return (
                     <div
                       key={habit.id}
-                      className="p-3.5 rounded-xl bg-neutral-900/70 border border-white/5 flex items-center justify-between"
+                      className="p-3.5 rounded-xl bg-[#181614] border border-[var(--line)] flex items-center justify-between"
                     >
                       <div className="pr-2">
-                        <p className="text-sm font-medium text-neutral-200">
+                        <p className="text-sm font-medium text-[var(--fg)]">
                           {habit.name}
                         </p>
-                        <p className="text-[11px] text-neutral-500 capitalize">
+                        <p className="text-[11px] text-[var(--muted)] capitalize">
                           {habit.checkpoint} · {habit.pillar}
                           {habit.is_minimum && ' · Non-negotiable'}
                         </p>
@@ -220,10 +226,10 @@ export function MuhasabaSheet({
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           onClick={() => handleToggleHabit(habit.id, 'done_min', doneMin)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
                             doneMin
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                              : 'bg-white/5 text-neutral-400 hover:bg-white/10'
+                              ? 'bg-[var(--gold)] text-[#12110F] font-semibold'
+                              : 'bg-white/5 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--fg)]'
                           }`}
                         >
                           Min
@@ -231,10 +237,10 @@ export function MuhasabaSheet({
                         {habit.target_value && (
                           <button
                             onClick={() => handleToggleHabit(habit.id, 'done_target', doneTarget)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
                               doneTarget
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                                : 'bg-white/5 text-neutral-400 hover:bg-white/10'
+                                ? 'bg-[var(--gold)] text-[#12110F] font-semibold'
+                                : 'bg-white/5 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--fg)]'
                             }`}
                           >
                             Target
@@ -253,7 +259,7 @@ export function MuhasabaSheet({
             <div className="space-y-6">
               {/* Energy 1-5 */}
               <div>
-                <label className="text-xs font-mono uppercase text-neutral-400 tracking-wider block mb-2">
+                <label className="text-xs font-mono uppercase text-[var(--muted)] tracking-wider block mb-2">
                   Energy today (1–5)
                 </label>
                 <div className="grid grid-cols-5 gap-2">
@@ -262,10 +268,10 @@ export function MuhasabaSheet({
                       key={lvl}
                       type="button"
                       onClick={() => setEnergy(lvl)}
-                      className={`h-11 rounded-xl text-sm font-mono font-semibold transition-all ${
+                      className={`h-11 rounded-xl text-sm font-mono font-semibold transition-all cursor-pointer ${
                         energy === lvl
-                          ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
-                          : 'bg-neutral-900 border border-white/5 text-neutral-400 hover:text-white'
+                          ? 'bg-[var(--gold)] text-[#12110F] shadow-md shadow-[var(--gold)]/20'
+                          : 'bg-[#181614] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--fg)]'
                       }`}
                     >
                       {lvl}
@@ -276,7 +282,7 @@ export function MuhasabaSheet({
 
               {/* Khushu 1-3 */}
               <div>
-                <label className="text-xs font-mono uppercase text-neutral-400 tracking-wider block mb-2">
+                <label className="text-xs font-mono uppercase text-[var(--muted)] tracking-wider block mb-2">
                   Khushu in salah
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -285,10 +291,10 @@ export function MuhasabaSheet({
                       key={opt.val}
                       type="button"
                       onClick={() => setKhushu(opt.val)}
-                      className={`h-11 rounded-xl text-xs font-medium transition-all ${
+                      className={`h-11 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                         khushu === opt.val
-                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
-                          : 'bg-neutral-900 border border-white/5 text-neutral-400 hover:text-white'
+                          ? 'bg-[var(--gold)] text-[#12110F] font-semibold shadow-md shadow-[var(--gold)]/20'
+                          : 'bg-[#181614] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--fg)]'
                       }`}
                     >
                       {opt.label}
@@ -299,27 +305,27 @@ export function MuhasabaSheet({
 
               {/* What went well? */}
               <div>
-                <label className="text-xs font-medium text-neutral-300 block mb-1">
-                  What went well? <span className="text-neutral-500 text-[10px]">(Cookie Jar)</span>
+                <label className="text-xs font-medium text-[var(--fg)] block mb-1">
+                  What went well? <span className="text-[var(--faint)] text-[10px]">(Cookie Jar)</span>
                 </label>
                 <Input
                   value={wentWell}
                   onChange={(e) => setWentWell(e.target.value)}
                   placeholder="e.g. Shipped the onboarding flow before Dhuhr"
-                  className="bg-neutral-900 border-white/10 text-sm h-11"
+                  className="bg-[#181614] border-[var(--line)] text-sm h-11 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                 />
               </div>
 
               {/* What didn't, and why? */}
               <div>
-                <label className="text-xs font-medium text-neutral-300 block mb-1">
+                <label className="text-xs font-medium text-[var(--fg)] block mb-1">
                   What didn’t, and why?
                 </label>
                 <Input
                   value={wentWrong}
                   onChange={(e) => setWentWrong(e.target.value)}
                   placeholder="e.g. Checked Twitter after lunch instead of rest"
-                  className="bg-neutral-900 border-white/10 text-sm h-11 mb-2"
+                  className="bg-[#181614] border-[var(--line)] text-sm h-11 mb-2 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                 />
 
                 <div className="flex flex-wrap gap-1.5 mt-2">
@@ -328,10 +334,10 @@ export function MuhasabaSheet({
                       key={chip}
                       type="button"
                       onClick={() => setBarrier(chip)}
-                      className={`px-3 py-1 rounded-full text-xs font-mono capitalize transition-colors ${
+                      className={`px-3 py-1 rounded-full text-xs font-mono capitalize transition-colors cursor-pointer ${
                         barrier === chip
-                          ? 'bg-red-500/20 text-red-300 border border-red-500/40'
-                          : 'bg-neutral-900 border border-white/5 text-neutral-500 hover:text-neutral-300'
+                          ? 'bg-[var(--gold-glow)] text-[var(--gold)] border border-[var(--gold)]/40 font-semibold'
+                          : 'bg-[#181614] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--fg)]'
                       }`}
                     >
                       {chip}
@@ -342,27 +348,27 @@ export function MuhasabaSheet({
 
               {/* What do I own? */}
               <div>
-                <label className="text-xs font-medium text-neutral-400 block mb-1">
-                  What do I own about today? <span className="text-neutral-600 text-[10px]">(optional)</span>
+                <label className="text-xs font-medium text-[var(--muted)] block mb-1">
+                  What do I own about today? <span className="text-[var(--faint)] text-[10px]">(optional)</span>
                 </label>
                 <Input
                   value={owned}
                   onChange={(e) => setOwned(e.target.value)}
                   placeholder="e.g. I stayed up 20 mins late last night."
-                  className="bg-neutral-900 border-white/10 text-sm h-11"
+                  className="bg-[#181614] border-[var(--line)] text-sm h-11 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                 />
               </div>
 
               {/* Shukr / Istighfar */}
               <div>
-                <label className="text-xs font-medium text-neutral-400 block mb-1">
-                  Shukr or istighfar <span className="text-neutral-600 text-[10px]">(optional)</span>
+                <label className="text-xs font-medium text-[var(--muted)] block mb-1">
+                  Shukr or istighfar <span className="text-[var(--faint)] text-[10px]">(optional)</span>
                 </label>
                 <Input
                   value={shukr}
                   onChange={(e) => setShukr(e.target.value)}
                   placeholder="Astaghfirullah wa atoobu ilayh"
-                  className="bg-neutral-900 border-white/10 text-sm h-11"
+                  className="bg-[#181614] border-[var(--line)] text-sm h-11 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                 />
               </div>
             </div>
@@ -372,70 +378,70 @@ export function MuhasabaSheet({
           {step === 3 && (
             <div className="space-y-6">
               {/* Tomorrow Context Card */}
-              <div className="p-3.5 rounded-xl bg-neutral-900 border border-white/5 text-xs space-y-1.5">
-                <div className="flex items-center justify-between text-neutral-400">
+              <div className="p-3.5 rounded-xl bg-[#181614] border border-[var(--line)] text-xs space-y-1.5">
+                <div className="flex items-center justify-between text-[var(--muted)]">
                   <span className="font-mono">{tomorrowDate}</span>
                   <span className="capitalize">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][tomorrowParts.weekday]}</span>
                 </div>
                 {isTomorrowTahajjud ? (
-                  <div className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                  <div className="flex items-center gap-1.5 text-[var(--gold)] font-medium">
                     <Moon className="w-3.5 h-3.5" />
                     <span>Tahajjud Morning · Alarm at 04:45</span>
                   </div>
                 ) : (
-                  <div className="text-neutral-500">Regular morning schedule · Fajr jamaat</div>
+                  <div className="text-[var(--muted)]">Regular morning schedule · Fajr jamaat</div>
                 )}
-                <div className="text-[11px] text-neutral-500 pt-1 border-t border-white/5">
+                <div className="text-[11px] text-[var(--faint)] pt-1 border-t border-[var(--line)]">
                   07:30–09:30 Big Rock · 09:30 Sales standup
                 </div>
               </div>
 
               {/* Focusing Question */}
               <div>
-                <label className="text-xs font-mono uppercase text-emerald-400 tracking-wider block mb-1">
+                <label className="text-xs font-mono uppercase text-[var(--gold)] tracking-wider block mb-1">
                   The Focusing Question
                 </label>
-                <p className="text-xs text-neutral-400 mb-2 italic">
-                  "What's the ONE thing tomorrow that makes everything else easier?"
+                <p className="text-xs text-[var(--muted)] mb-2 italic">
+                  &ldquo;What&apos;s the ONE thing tomorrow that makes everything else easier?&rdquo;
                 </p>
                 <Input
                   value={focusingQ}
                   onChange={(e) => setFocusingQ(e.target.value)}
-                  className="bg-neutral-900 border-white/10 text-sm h-11"
+                  className="bg-[#181614] border-[var(--line)] text-sm h-11 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                 />
               </div>
 
               {/* Top 3 Priorities */}
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase text-neutral-400 tracking-wider block">
+                <label className="text-xs font-mono uppercase text-[var(--muted)] tracking-wider block">
                   Top 3 Priorities
                 </label>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 text-center font-mono text-xs text-amber-400 font-semibold">1</span>
+                    <span className="w-6 text-center font-mono text-xs text-[var(--gold)] font-semibold">1</span>
                     <Input
                       value={top1}
                       onChange={(e) => setTop1(e.target.value)}
                       placeholder="#1 Priority (WIG)"
-                      className="bg-neutral-900 border-white/10 text-sm h-10"
+                      className="bg-[#181614] border-[var(--line)] text-sm h-10 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-6 text-center font-mono text-xs text-neutral-500 font-semibold">2</span>
+                    <span className="w-6 text-center font-mono text-xs text-[var(--faint)] font-semibold">2</span>
                     <Input
                       value={top2}
                       onChange={(e) => setTop2(e.target.value)}
                       placeholder="#2 Priority"
-                      className="bg-neutral-900 border-white/10 text-sm h-10"
+                      className="bg-[#181614] border-[var(--line)] text-sm h-10 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-6 text-center font-mono text-xs text-neutral-500 font-semibold">3</span>
+                    <span className="w-6 text-center font-mono text-xs text-[var(--faint)] font-semibold">3</span>
                     <Input
                       value={top3}
                       onChange={(e) => setTop3(e.target.value)}
                       placeholder="#3 Priority"
-                      className="bg-neutral-900 border-white/10 text-sm h-10"
+                      className="bg-[#181614] border-[var(--line)] text-sm h-10 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                     />
                   </div>
                 </div>
@@ -443,30 +449,30 @@ export function MuhasabaSheet({
 
               {/* Big Rock First Action (REQUIRED) */}
               <div>
-                <label className="text-xs font-mono uppercase text-amber-400 tracking-wider block mb-1">
+                <label className="text-xs font-mono uppercase text-[var(--gold)] tracking-wider block mb-1">
                   Big Rock First Action (Required)
                 </label>
-                <p className="text-[11px] text-neutral-500 mb-2">
+                <p className="text-[11px] text-[var(--faint)] mb-2">
                   What exact file or screen do you open at 07:30?
                 </p>
                 <Input
                   value={bigRockFirstAction}
                   onChange={(e) => setBigRockFirstAction(e.target.value)}
                   placeholder="e.g. Open PayClock repo, finish the paywall screen"
-                  className="bg-neutral-900 border-amber-500/30 text-sm h-11 focus-visible:ring-amber-500"
+                  className="bg-[#181614] border-[var(--gold)]/30 text-sm h-11 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                 />
               </div>
 
               {/* If-Then */}
               <div>
-                <label className="text-xs font-mono uppercase text-neutral-400 tracking-wider block mb-1">
+                <label className="text-xs font-mono uppercase text-[var(--muted)] tracking-wider block mb-1">
                   If-Then Implementation Intention
                 </label>
                 <Input
                   value={ifThen}
                   onChange={(e) => setIfThen(e.target.value)}
                   placeholder="If I wake up tired, then I still do 45 minutes of the Big Rock first."
-                  className="bg-neutral-900 border-white/10 text-sm h-11"
+                  className="bg-[#181614] border-[var(--line)] text-sm h-11 text-[var(--fg)] placeholder:text-[var(--faint)] focus-visible:ring-[var(--gold)]"
                 />
               </div>
             </div>
@@ -474,13 +480,13 @@ export function MuhasabaSheet({
         </div>
 
         {/* Bottom Actions Bar */}
-        <div className="p-4 border-t border-white/5 bg-neutral-900/60 backdrop-blur-md flex items-center justify-between gap-3">
+        <div className="p-4 border-t border-[var(--line)] bg-[#141210] flex items-center justify-between gap-3">
           {step > 1 ? (
             <Button
               type="button"
               variant="outline"
               onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
-              className="h-12 px-4 rounded-xl border-white/10 text-neutral-300 hover:text-white"
+              className="h-11 px-4 rounded-xl border-[var(--line)] bg-transparent text-[var(--muted)] hover:text-[var(--fg)] hover:bg-white/5 cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Back
@@ -493,7 +499,7 @@ export function MuhasabaSheet({
             <Button
               type="button"
               onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3)}
-              className="h-12 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium flex-1 ml-auto max-w-[200px]"
+              className="h-11 px-6 rounded-xl bg-[var(--gold)] hover:bg-[#b8985c] active:scale-[0.98] text-[#12110F] font-semibold text-sm flex-1 ml-auto max-w-[180px] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -503,7 +509,7 @@ export function MuhasabaSheet({
               type="button"
               disabled={submitting}
               onClick={handleSaveAndClose}
-              className="h-12 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold flex-1 shadow-lg shadow-amber-500/20"
+              className="h-11 px-6 rounded-xl bg-[var(--gold)] hover:bg-[#b8985c] active:scale-[0.98] text-[#12110F] font-semibold text-sm flex-1 shadow-md shadow-[var(--gold)]/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               {submitting ? 'Saving...' : 'Close the Day'}
             </Button>
