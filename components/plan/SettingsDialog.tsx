@@ -171,19 +171,103 @@ export function SettingsDialog({
             </p>
           </div>
 
+          {/* Reminders & Push (P0-2) */}
+          <div className="p-3.5 rounded-xl bg-[#141210] border border-[var(--line)] space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-mono uppercase tracking-wider text-[var(--gold)] block">
+                  Push Reminders
+                </span>
+                <p className="text-[11px] text-[var(--muted)]">
+                  Status: {typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (!('Notification' in window)) {
+                    toast.error('Web notifications are not supported in this browser.');
+                    return;
+                  }
+                  try {
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                      toast.error('Notification permission was denied.');
+                      return;
+                    }
+                    const reg = await navigator.serviceWorker.ready;
+                    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+                    if (!vapidKey) {
+                      toast.error('VAPID key not configured');
+                      return;
+                    }
+                    const { urlBase64ToUint8Array } = await import('@/lib/push-client');
+                    const sub = await reg.pushManager.subscribe({
+                      userVisibleOnly: true,
+                      applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as BufferSource,
+                    });
+                    const subData = sub.toJSON();
+                    await fetch('/api/push/subscribe', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        endpoint: subData.endpoint,
+                        keys: subData.keys,
+                        user_agent: navigator.userAgent,
+                      }),
+                    });
+                    toast.success('Reminders enabled and subscription saved!');
+                  } catch (err) {
+                    toast.error('Failed to enable reminders');
+                  }
+                }}
+                className="text-xs h-8 rounded-lg border-[var(--line)] bg-[#181614] text-[var(--fg)] hover:border-[var(--gold)] cursor-pointer"
+              >
+                Enable Reminders
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/push/test', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                      toast.success(`Test notification sent! Delivered to ${data.count} device(s).`);
+                    } else {
+                      toast.error(data.error || 'Failed to send test notification');
+                    }
+                  } catch (err) {
+                    toast.error('Error sending test notification');
+                  }
+                }}
+                className="text-xs h-8 rounded-lg border-[var(--line)] bg-[#181614] text-[var(--gold)] hover:border-[var(--gold)] cursor-pointer"
+              >
+                Send Test Notification
+              </Button>
+            </div>
+          </div>
+
           {/* Habits Min & Target Overview */}
           <div className="space-y-2">
-            <label className="text-xs font-mono uppercase tracking-wider text-neutral-400 block">
+            <label className="text-xs font-mono uppercase tracking-wider text-[var(--muted)] block">
               Configured Habits ({habits.length})
             </label>
             <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
               {habits.map((h) => (
                 <div
                   key={h.id}
-                  className="p-2.5 rounded-lg bg-neutral-900/60 border border-white/5 flex items-center justify-between text-xs"
+                  className="p-2.5 rounded-lg bg-[#141210] border border-[var(--line)] flex items-center justify-between text-xs"
                 >
-                  <span className="font-medium text-neutral-200">{h.name}</span>
-                  <span className="font-mono text-[10px] text-neutral-500">
+                  <span className="font-medium text-[var(--fg)]">{h.name}</span>
+                  <span className="font-mono text-[10px] text-[var(--muted)]">
                     Min: {h.min_value || '1'} · Target: {h.target_value || '—'}
                   </span>
                 </div>
@@ -192,18 +276,18 @@ export function SettingsDialog({
           </div>
         </div>
 
-        <div className="p-4 border-t border-white/5 bg-neutral-900/60 flex justify-end gap-2">
+        <div className="p-4 border-t border-[var(--line)] bg-[#141210] flex justify-end gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-white/10 text-xs"
+            className="border-[var(--line)] text-xs text-[var(--muted)] hover:text-[var(--fg)] bg-transparent cursor-pointer"
           >
             Cancel
           </Button>
           <Button
             disabled={saving}
             onClick={handleSave}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs px-5"
+            className="bg-[var(--gold)] hover:bg-[#b8985c] text-[#12110F] font-semibold text-xs px-5 cursor-pointer active:scale-[0.98] transition-all"
           >
             {saving ? 'Saving...' : 'Save Settings'}
           </Button>

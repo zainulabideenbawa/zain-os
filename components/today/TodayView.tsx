@@ -20,13 +20,15 @@ import { toast } from 'sonner';
 type Habit = Database['public']['Tables']['habits']['Row'];
 type DayLog = Database['public']['Tables']['day_logs']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
+type FocusSession = Database['public']['Tables']['focus_sessions']['Row'];
+
 export interface StreakInfo {
   current: number;
   state: string;
   freezes_banked: number;
 }
 
-interface TodayViewProps {
+export interface TodayViewProps {
   date: string;
   cycleWeek: number;
   initialDay: Day | null;
@@ -34,6 +36,8 @@ interface TodayViewProps {
   habits: Habit[];
   prayerSchedule: DayPrayerTimes;
   streak: StreakInfo | null;
+  initialActiveSession?: FocusSession | null;
+  initialCompletedMinutes?: number;
 }
 
 export function TodayView({
@@ -44,6 +48,8 @@ export function TodayView({
   habits,
   prayerSchedule,
   streak,
+  initialActiveSession = null,
+  initialCompletedMinutes = 0,
 }: TodayViewProps) {
   const [badDayMode, setBadDayMode] = useState(Boolean(initialDay?.bad_day));
   const [selectedSlot, setSelectedSlot] = useState<PrayerSlot | null>(null);
@@ -208,6 +214,8 @@ export function TodayView({
         onOpenParkDialog={() => setParkDialogOpen(true)}
         isBadDay={badDayMode}
         firstAction={firstAction}
+        initialActiveSession={initialActiveSession}
+        initialCompletedMinutes={initialCompletedMinutes}
       />
 
       {/* Five Daily Salah Checkpoints */}

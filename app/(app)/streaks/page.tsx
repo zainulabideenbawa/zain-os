@@ -1,4 +1,5 @@
 import React from 'react';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getLogicalDate, getCycleWeek, getYesterdayDate } from '@/lib/time';
 import { StreaksView, type CookieJarItem } from '@/components/streaks/StreaksView';
@@ -9,8 +10,8 @@ export default async function StreaksPage() {
   const logicalDate = getLogicalDate();
   const cycleWeek = getCycleWeek(logicalDate);
 
-  let streak = 1;
-  let bestStreak = 1;
+  let streak = 0;
+  let bestStreak = 0;
   let freezes = 0;
   let daysMap: Record<string, 'kept' | 'at_risk' | 'comeback' | 'frozen' | 'missed' | 'open' | 'future'> = {};
   let cookieJar: CookieJarItem[] = [];
@@ -23,26 +24,24 @@ export default async function StreaksPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Look up authenticated user or seeded profile fallback
-    let userId = user?.id;
-    if (!userId) {
-      const { data: p } = await supabase.from('profiles').select('user_id').limit(1).maybeSingle();
-      userId = p?.user_id;
+    if (!user) {
+      redirect('/login');
     }
 
-    if (userId) {
-      // 1. Fetch profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('streak, best_streak, freezes')
-        .eq('user_id', userId)
-        .maybeSingle();
+    const userId = user.id;
 
-      if (profile) {
-        streak = profile.streak ?? 1;
-        bestStreak = Math.max(profile.best_streak ?? 1, streak);
-        freezes = profile.freezes ?? 0;
-      }
+    // 1. Fetch profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('streak, best_streak, freezes')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (profile) {
+      streak = profile.streak ?? 0;
+      bestStreak = Math.max(profile.best_streak ?? 0, streak);
+      freezes = profile.freezes ?? 0;
+    }
 
       // 2. Fetch past days in cycle
       const { data: daysList } = await supabase

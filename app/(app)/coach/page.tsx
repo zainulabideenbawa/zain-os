@@ -1,4 +1,5 @@
 import React from 'react';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CoachView, type MuhasabaHistoryItem } from '@/components/coach/CoachView';
 
@@ -13,14 +14,13 @@ export default async function CoachPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    let userId = user?.id;
-    if (!userId) {
-      const { data: p } = await supabase.from('profiles').select('user_id').limit(1).maybeSingle();
-      userId = p?.user_id;
+    if (!user) {
+      redirect('/login');
     }
 
-    if (userId) {
-      const { data } = await supabase
+    const userId = user.id;
+
+    const { data } = await supabase
         .from('days')
         .select('date, energy, khushu, went_well, went_wrong, barrier, owned, shukr, closed_at')
         .eq('user_id', userId)

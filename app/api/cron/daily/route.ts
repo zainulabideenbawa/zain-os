@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getLogicalDate, getYesterdayDate, getTomorrowDate, getKarachiParts } from '@/lib/time';
 import { buildDailySchedule } from '@/lib/schedule';
+import { buildQueueForUser } from '@/lib/queue';
 import { evaluateStreak, checkDayMinimums, type DayInputRecord } from '@/lib/streak';
 import type { JamaatSettings } from '@/lib/prayer';
 
@@ -27,83 +28,26 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient();
 
     // -------------------------------------------------------------
-    // JOB: BUILD (00:05 PKT / 19:05 UTC)
+    // JOB: BUILD (03:05 PKT / 22:05 UTC)
     // -------------------------------------------------------------
     if (job === 'build') {
       const today = getLogicalDate();
-      const yesterday = getYesterdayDate(today);
-      const tomorrow = getTomorrowDate(today);
 
       const { data: profiles, error: profError } = await admin
         .from('profiles')
-        .select('*');
+        .select('user_id');
 
       if (profError) {
         return NextResponse.json({ error: profError.message }, { status: 500 });
       }
 
       let totalInserted = 0;
-
       for (const profile of profiles || []) {
-        // 1. Fetch today's day record for planned first action
-        const { data: todayDay } = await admin
-          .from('days')
-          .select('plan')
-          .eq('user_id', profile.user_id)
-          .eq('date', today)
-          .maybeSingle();
-
-        const planObj = todayDay?.plan as { big_rock_first_action?: string } | null;
-        const bigRockFirstAction = planObj?.big_rock_first_action;
-
-        // 2. Check if yesterday was at_risk
-        const { data: yDay } = await admin
-          .from('days')
-          .select('state')
-          .eq('user_id', profile.user_id)
-          .eq('date', yesterday)
-          .maybeSingle();
-
-        const yesterdayWasAtRisk = yDay?.state === 'at_risk';
-
-        // 3. Check if tomorrow morning is a Tahajjud day
-        const tomorrowParts = getKarachiParts(`${tomorrow}T12:00:00Z`);
-        const tahajjudDays = profile.tahajjud_days || [0, 3, 5];
-        const isTahajjudNightNextMorning = tahajjudDays.includes(tomorrowParts.weekday);
-
-        // 4. Generate planned schedule using pure scheduler
-        const plannedNotifications = buildDailySchedule({
-          logicalDate: today,
-          streak: profile.streak ?? 1,
-          bigRockFirstAction,
-          isTahajjudNightNextMorning,
-          yesterdayWasAtRisk,
-          jamaatSettings: (profile.jamaat as Partial<JamaatSettings>) || {},
-          notifPrefs: (profile.notif_prefs as Record<string, boolean>) || {},
-        });
-
-        // 5. Upsert into notification_queue (dedupe_key enforces idempotency)
-        for (const notif of plannedNotifications) {
-          const { error: insertError } = await admin
-            .from('notification_queue')
-            .upsert(
-              {
-                user_id: profile.user_id,
-                logical_date: today,
-                kind: notif.kind,
-                send_at: notif.sendAt.toISOString(),
-                title: notif.title,
-                body: notif.body,
-                url: notif.url,
-                status: 'pending',
-                dedupe_key: notif.dedupeKey,
-              },
-              { onConflict: 'dedupe_key' }
-            );
-
-          if (!insertError) {
-            totalInserted++;
-          }
+        try {
+          const count = await buildQueueForUser(profile.user_id, today);
+          totalInserted += count;
+        } catch (err) {
+          console.error(`[Cron:Daily:Build] Error for user ${profile.user_id}:`, err);
         }
       }
 

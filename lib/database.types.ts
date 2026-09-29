@@ -380,6 +380,7 @@ export type Database = {
           madhab: string
           niyyah: string
           notif_prefs: Json
+          onboarded_at: string | null
           streak: number
           tahajjud_days: number[]
           tz: string
@@ -400,6 +401,7 @@ export type Database = {
           madhab?: string
           niyyah?: string
           notif_prefs?: Json
+          onboarded_at?: string | null
           streak?: number
           tahajjud_days?: number[]
           tz?: string
@@ -420,6 +422,7 @@ export type Database = {
           madhab?: string
           niyyah?: string
           notif_prefs?: Json
+          onboarded_at?: string | null
           streak?: number
           tahajjud_days?: number[]
           tz?: string

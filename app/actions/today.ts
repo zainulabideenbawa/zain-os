@@ -1,34 +1,11 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/supabase/auth';
 import { revalidatePath } from 'next/cache';
 import { getLogicalDate } from '@/lib/time';
 import type { Database } from '@/lib/database.types';
 
 type DayLogInsert = Database['public']['Tables']['day_logs']['Insert'];
-
-async function getAuthenticatedUserOrFallback() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return { supabase, userId: user.id };
-  }
-
-  // Fallback for local preview: look up seeded profile
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('user_id')
-    .limit(1);
-
-  if (profiles && profiles.length > 0) {
-    return { supabase, userId: profiles[0].user_id };
-  }
-
-  throw new Error('Unauthorized');
-}
 
 export async function toggleHabitLog(params: {
   habitId: string;
@@ -37,7 +14,7 @@ export async function toggleHabitLog(params: {
   value: boolean;
 }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
     const logicalDate = params.date || getLogicalDate();
 
     // Fetch existing log if any
@@ -86,7 +63,7 @@ export async function toggleBadDayMode(params: {
   badDay: boolean;
 }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
     const logicalDate = params.date || getLogicalDate();
 
     const { error } = await supabase.from('days').upsert(
@@ -117,7 +94,7 @@ export async function parkIdea(params: {
   notes?: string;
 }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const { error } = await supabase.from('parked').insert({
       user_id: userId,
@@ -141,7 +118,7 @@ export async function parkIdea(params: {
 
 export async function confirmMorningPlan(params: { date: string }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
     const logicalDate = params.date || getLogicalDate();
 
     const { error } = await supabase.from('days').upsert(

@@ -1,31 +1,8 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/supabase/auth';
 import { revalidatePath } from 'next/cache';
 import type { Database } from '@/lib/database.types';
-
-async function getAuthenticatedUserOrFallback() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return { supabase, userId: user.id };
-  }
-
-  // Fallback for local preview
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('user_id')
-    .limit(1);
-
-  if (profiles && profiles.length > 0) {
-    return { supabase, userId: profiles[0].user_id };
-  }
-
-  throw new Error('Unauthorized');
-}
 
 export async function updateProfileSettings(params: {
   displayName?: string;
@@ -37,7 +14,7 @@ export async function updateProfileSettings(params: {
   notifPrefs?: Record<string, boolean>;
 }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const updatePayload: Partial<Database['public']['Tables']['profiles']['Update']> = {
       updated_at: new Date().toISOString(),
@@ -61,6 +38,16 @@ export async function updateProfileSettings(params: {
       return { success: false, error: error.message };
     }
 
+    if (params.jamaat !== undefined || params.tahajjudDays !== undefined) {
+      try {
+        const { getLogicalDate } = await import('@/lib/time');
+        const { buildQueueForUser } = await import('@/lib/queue');
+        await buildQueueForUser(userId, getLogicalDate());
+      } catch (err) {
+        console.warn('[Action:updateProfileSettings] Rebuild queue warning:', err);
+      }
+    }
+
     revalidatePath('/plan');
     revalidatePath('/today');
     return { success: true };
@@ -77,7 +64,7 @@ export async function updateHabitConfig(params: {
   active?: boolean;
 }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const payload: Partial<Database['public']['Tables']['habits']['Update']> = {
       updated_at: new Date().toISOString(),
@@ -112,7 +99,7 @@ export async function addParkedItem(params: {
   revisitOn?: string;
 }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const { data, error } = await supabase
       .from('parked')
@@ -139,7 +126,7 @@ export async function addParkedItem(params: {
 
 export async function deleteParkedItem(id: string) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const { error } = await supabase
       .from('parked')
@@ -161,7 +148,7 @@ export async function deleteParkedItem(id: string) {
 
 export async function updateCyclePersonalProject(personalProject: string) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const { error } = await supabase
       .from('cycles')

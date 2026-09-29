@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { urlBase64ToUint8Array } from '@/lib/push';
+import { urlBase64ToUint8Array } from '@/lib/push-client';
+
+import manifestFn from '@/app/manifest';
 
 describe('Milestone 3: PWA & Push Helpers', () => {
   it('converts base64 VAPID public key into Uint8Array properly', () => {
@@ -10,9 +12,8 @@ describe('Milestone 3: PWA & Push Helpers', () => {
     expect(uintArray.length).toBeGreaterThan(0);
   });
 
-  it('verifies manifest metadata configuration values', async () => {
-    const manifestModule = await import('@/app/manifest');
-    const manifest = manifestModule.default();
+  it('verifies manifest metadata configuration values', () => {
+    const manifest = manifestFn();
 
     expect(manifest.name).toBe('Zain OS');
     expect(manifest.short_name).toBe('Zain OS');

@@ -40,9 +40,23 @@ export async function POST(request: NextRequest) {
 
     let dispatchedCount = 0;
     let skippedCount = 0;
-    let failedCount = 0;
+    const staleThresholdMs = Date.now() - 10 * 60 * 1000;
 
     for (const item of queue) {
+      // 0. Skip stale rows (send_at < now() - 10 minutes) per P0-4
+      const sendAtMs = new Date(item.send_at).getTime();
+      if (sendAtMs < staleThresholdMs) {
+        await admin
+          .from('notification_queue')
+          .update({
+            status: 'skipped',
+            error: 'stale',
+          })
+          .eq('id', item.id);
+        skippedCount++;
+        continue;
+      }
+
       // 2. Evaluate send-time conditions
       // A. Active focus session check
       const { data: activeSessions } = await admin

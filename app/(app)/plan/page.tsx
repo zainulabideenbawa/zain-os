@@ -1,4 +1,5 @@
 import React from 'react';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getLogicalDate, getCycleWeek, getCycleDaysRemaining, getNowKarachi } from '@/lib/time';
 import { PlanView } from '@/components/plan/PlanView';
@@ -20,8 +21,8 @@ export default async function PlanPage() {
   let cycle: Cycle | null = null;
   let habits: Habit[] = [];
   let parkedList: Parked[] = [];
-  let makerHours = 1.5;
-  let streak = 1;
+  let makerHours = 0;
+  let streak = 0;
   let weeklyScore = 85;
 
   try {
@@ -30,22 +31,21 @@ export default async function PlanPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    let userId = user?.id;
-    if (!userId) {
-      const { data: p } = await supabase.from('profiles').select('user_id').limit(1).maybeSingle();
-      userId = p?.user_id;
+    if (!user) {
+      redirect('/login');
     }
 
-    if (userId) {
-      // 1. Fetch profile
-      const { data: p } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+    const userId = user.id;
 
-      profile = p;
-      if (profile?.streak) streak = profile.streak;
+    // 1. Fetch profile
+    const { data: p } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    profile = p;
+    if (profile?.streak) streak = profile.streak;
 
       // 2. Fetch cycle
       const { data: c } = await supabase

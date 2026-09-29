@@ -45,6 +45,7 @@ export const viewport: Viewport = {
 };
 
 import { Providers } from '@/app/providers';
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 
 export default function RootLayout({
   children,
@@ -58,7 +59,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-[var(--bg)] text-[var(--fg)] antialiased selection:bg-[var(--gold-glow)] selection:text-[var(--gold)]">
-        <Providers>{children}</Providers>
+        <Providers>
+          <ServiceWorkerRegister />
+          {children}
+        </Providers>
       </body>
     </html>
   );

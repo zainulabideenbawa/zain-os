@@ -103,11 +103,16 @@ export function calculatePrayerTimes(
     };
   }
 
-  const fajr = resolveSlot('fajr', 'Fajr', 'الفجر', '🌅', prayerTimes.fajr);
-  const dhuhr = resolveSlot('dhuhr', 'Dhuhr', 'الظهر', '☀️', prayerTimes.dhuhr);
-  const asr = resolveSlot('asr', 'Asr', 'العصر', '🌤', prayerTimes.asr);
-  const maghrib = resolveSlot('maghrib', 'Maghrib', 'المغرب', '🌇', prayerTimes.maghrib);
-  const isha = resolveSlot('isha', 'Isha', 'العشاء', '🌙', prayerTimes.isha);
+  function roundToNearestMinute(d: Date): Date {
+    const ms = 1000 * 60;
+    return new Date(Math.round(d.getTime() / ms) * ms);
+  }
+
+  const fajr = resolveSlot('fajr', 'Fajr', 'الفجر', '🌅', roundToNearestMinute(prayerTimes.fajr));
+  const dhuhr = resolveSlot('dhuhr', 'Dhuhr', 'الظهر', '☀️', roundToNearestMinute(prayerTimes.dhuhr));
+  const asr = resolveSlot('asr', 'Asr', 'العصر', '🌤', roundToNearestMinute(prayerTimes.asr));
+  const maghrib = resolveSlot('maghrib', 'Maghrib', 'المغرب', '🌇', roundToNearestMinute(prayerTimes.maghrib));
+  const isha = resolveSlot('isha', 'Isha', 'العشاء', '🌙', roundToNearestMinute(prayerTimes.isha));
 
   const prayers = { fajr, dhuhr, asr, maghrib, isha };
   const list = [fajr, dhuhr, asr, maghrib, isha];

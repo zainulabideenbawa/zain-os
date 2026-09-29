@@ -27,10 +27,10 @@ begin
       $cron$
     );
 
-    -- 3. Schedule zainos-build (00:05 PKT = 19:05 UTC)
+    -- 3. Schedule zainos-build (03:05 PKT = 22:05 UTC, immediately after close)
     perform cron.schedule(
       'zainos-build',
-      '5 19 * * *',
+      '5 22 * * *',
       $cron$
       select net.http_post(
         url := (select decrypted_secret from vault.decrypted_secrets where name='app_url') || '/api/cron/daily?job=build',

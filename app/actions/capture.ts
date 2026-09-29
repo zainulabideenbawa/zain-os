@@ -1,29 +1,7 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/supabase/auth';
 import { revalidatePath } from 'next/cache';
-
-async function getAuthenticatedUserOrFallback() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return { supabase, userId: user.id };
-  }
-
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('user_id')
-    .limit(1);
-
-  if (profiles && profiles.length > 0) {
-    return { supabase, userId: profiles[0].user_id };
-  }
-
-  throw new Error('Unauthorized');
-}
 
 export async function saveQuickCapture(text: string) {
   try {
@@ -31,7 +9,7 @@ export async function saveQuickCapture(text: string) {
       return { success: false, error: 'Text cannot be empty' };
     }
 
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const { data, error } = await supabase
       .from('capture')
@@ -59,7 +37,7 @@ export async function saveQuickCapture(text: string) {
 
 export async function clearCaptureItem(id: string) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const { error } = await supabase
       .from('capture')

@@ -1,29 +1,7 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/supabase/auth';
 import { revalidatePath } from 'next/cache';
-
-async function getAuthenticatedUserOrFallback() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return { supabase, userId: user.id };
-  }
-
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('user_id')
-    .limit(1);
-
-  if (profiles && profiles.length > 0) {
-    return { supabase, userId: profiles[0].user_id };
-  }
-
-  throw new Error('Unauthorized');
-}
 
 export interface SundayReviewPayload {
   weekStart: string; // YYYY-MM-DD
@@ -46,7 +24,7 @@ export interface SundayReviewPayload {
 
 export async function saveSundayReview(payload: SundayReviewPayload) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     const { error } = await supabase.from('weeks').upsert(
       {

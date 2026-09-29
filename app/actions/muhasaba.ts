@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/supabase/auth';
 import { revalidatePath } from 'next/cache';
 import { getLogicalDate, getTomorrowDate } from '@/lib/time';
 
@@ -21,32 +21,9 @@ export interface MuhasabaPayload {
   };
 }
 
-async function getAuthenticatedUserOrFallback() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return { supabase, userId: user.id };
-  }
-
-  // Fallback for local preview: look up seeded profile
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('user_id')
-    .limit(1);
-
-  if (profiles && profiles.length > 0) {
-    return { supabase, userId: profiles[0].user_id };
-  }
-
-  throw new Error('Unauthorized');
-}
-
 export async function saveMuhasabaAndPlan(payload: MuhasabaPayload) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
     const logicalDate = payload.date || getLogicalDate();
     const tomorrowDate = getTomorrowDate(logicalDate);
 
@@ -144,7 +121,7 @@ export async function saveMuhasabaAndPlan(payload: MuhasabaPayload) {
     return {
       success: true,
       allMinDone,
-      streak: profile?.streak ?? 1,
+      streak: profile?.streak ?? 0,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

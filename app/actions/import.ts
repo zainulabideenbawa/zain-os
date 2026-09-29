@@ -1,31 +1,9 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { requireUser } from '@/lib/supabase/auth';
 import { revalidatePath } from 'next/cache';
 import { checkDayMinimums, evaluateStreak, type DayInputRecord } from '@/lib/streak';
 import { getTomorrowDate } from '@/lib/time';
-
-async function getAuthenticatedUserOrFallback() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return { supabase, userId: user.id };
-  }
-
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('user_id')
-    .limit(1);
-
-  if (profiles && profiles.length > 0) {
-    return { supabase, userId: profiles[0].user_id };
-  }
-
-  throw new Error('Unauthorized');
-}
 
 export async function importPastDay(params: {
   date: string;
@@ -33,7 +11,7 @@ export async function importPastDay(params: {
   wentWell?: string;
 }) {
   try {
-    const { supabase, userId } = await getAuthenticatedUserOrFallback();
+    const { supabase, userId } = await requireUser();
 
     // 1. Fetch habits to map IDs to keys
     const { data: habits } = await supabase
