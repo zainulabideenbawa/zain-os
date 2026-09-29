@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Flame, CheckCircle, ShieldCheck, PhoneOff, Users } from 'lucide-react';
 import { saveSundayReview } from '@/app/actions/review';
 import { toast } from 'sonner';
