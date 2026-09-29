@@ -68,25 +68,5 @@ export async function sendPushNotification(
   }
 }
 
-/**
- * Client-side helper to convert VAPID public key string to Uint8Array for PushManager
- */
-export function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+export { urlBase64ToUint8Array } from './push-client';
 
-  const atobFn =
-    typeof window !== 'undefined' && typeof window.atob === 'function'
-      ? window.atob.bind(window)
-      : (str: string) => Buffer.from(str, 'base64').toString('binary');
-
-  const rawData = atobFn(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}

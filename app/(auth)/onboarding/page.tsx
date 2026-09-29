@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Share,
 } from 'lucide-react';
-import { urlBase64ToUint8Array } from '@/lib/push';
+import { urlBase64ToUint8Array } from '@/lib/push-client';
 import { toast } from 'sonner';
 
 export default function OnboardingPage() {
