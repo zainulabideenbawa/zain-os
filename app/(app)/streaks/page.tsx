@@ -81,7 +81,6 @@ export default async function StreaksPage() {
       if (totalMinutes > 0) {
         deepWorkHours = Math.round((totalMinutes / 60) * 10) / 10;
       }
-    }
   } catch (err) {
     console.warn('[StreaksPage] DB fetch error:', err);
   }

@@ -87,7 +87,6 @@ export default async function PlanPage() {
       if (totalMins > 0) {
         makerHours = Math.round((totalMins / 60) * 10) / 10;
       }
-    }
   } catch (err) {
     console.warn('[PlanPage] DB fetch error:', err);
   }
