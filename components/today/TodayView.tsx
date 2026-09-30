@@ -5,7 +5,11 @@ import { motion } from 'motion/react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Flame, Shield, Moon, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
-import type { DayPrayerTimes, PrayerSlot } from '@/lib/prayer';
+import {
+  type DayPrayerTimes,
+  type PrayerSlot,
+  getHabitAssignedTime,
+} from '@/lib/prayer';
 import type { Database } from '@/lib/database.types';
 import { IdentityCard } from './IdentityCard';
 import { BigRockCard } from './BigRockCard';
@@ -150,9 +154,18 @@ export function TodayView({
     }
   };
 
-  // Group habits by anchor
+  // Group habits by anchor and active day of the week
+  const [year, month, day] = date.split('-').map(Number);
+  const currentDayOfWeek = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+
   const getHabitsForSlot = (slotName: string) => {
-    return habits.filter((h) => h.checkpoint === slotName);
+    return habits.filter((h) => {
+      if (h.checkpoint !== slotName) return false;
+      if (h.days && Array.isArray(h.days) && h.days.length > 0) {
+        return h.days.includes(currentDayOfWeek);
+      }
+      return true;
+    });
   };
 
   const currentStreakCount = streak?.current ?? 1;
@@ -259,7 +272,7 @@ export function TodayView({
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
 
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-semibold text-[var(--fg)]">
                         {slot.label}
@@ -272,6 +285,33 @@ export function TodayView({
                       <span>Azan {slot.azanStr}</span> ·{' '}
                       <span className="text-[var(--gold)]">Jamaat {slot.jamaatStr}</span>
                     </div>
+
+                    {/* Assigned Tasks & Times Preview */}
+                    {slotHabits.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {slotHabits.map((h) => {
+                          const isDone = Boolean(dayLogsMap[h.id]?.done_min);
+                          const assignedTime = getHabitAssignedTime(h.key, slot);
+                          return (
+                            <span
+                              key={h.id}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono border transition-colors ${
+                                isDone
+                                  ? 'bg-[var(--emerald)]/10 text-[var(--emerald)] border-[var(--emerald)]/20 line-through opacity-75'
+                                  : 'bg-[var(--bg)] text-[var(--muted)] border-[var(--border)]'
+                              }`}
+                            >
+                              <span>{h.name}</span>
+                              {assignedTime && (
+                                <span className="text-[var(--gold)] font-medium text-[9px]">
+                                  ({assignedTime})
+                                </span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
 

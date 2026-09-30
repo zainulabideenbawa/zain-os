@@ -203,53 +203,64 @@ export function MuhasabaSheet({
               </p>
 
               <div className="space-y-2">
-                {habits.map((habit) => {
-                  const log = dayLogsMap[habit.id];
-                  const doneMin = log?.done_min ?? false;
-                  const doneTarget = log?.done_target ?? false;
+                {(() => {
+                  const [y, m, d] = date.split('-').map(Number);
+                  const currentDayOfWeek = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+                  const activeHabits = habits.filter((h) => {
+                    if (h.days && Array.isArray(h.days) && h.days.length > 0) {
+                      return h.days.includes(currentDayOfWeek);
+                    }
+                    return true;
+                  });
 
-                  return (
-                    <div
-                      key={habit.id}
-                      className="p-3.5 rounded-xl bg-[#181614] border border-[var(--line)] flex items-center justify-between"
-                    >
-                      <div className="pr-2">
-                        <p className="text-sm font-medium text-[var(--fg)]">
-                          {habit.name}
-                        </p>
-                        <p className="text-[11px] text-[var(--muted)] capitalize">
-                          {habit.checkpoint} · {habit.pillar}
-                          {habit.is_minimum && ' · Non-negotiable'}
-                        </p>
-                      </div>
+                  return activeHabits.map((habit) => {
+                    const log = dayLogsMap[habit.id];
+                    const doneMin = log?.done_min ?? false;
+                    const doneTarget = log?.done_target ?? false;
 
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={() => handleToggleHabit(habit.id, 'done_min', doneMin)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
-                            doneMin
-                              ? 'bg-[var(--gold)] text-[#12110F] font-semibold'
-                              : 'bg-white/5 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--fg)]'
-                          }`}
-                        >
-                          Min
-                        </button>
-                        {habit.target_value && (
+                    return (
+                      <div
+                        key={habit.id}
+                        className="p-3.5 rounded-xl bg-[#181614] border border-[var(--line)] flex items-center justify-between"
+                      >
+                        <div className="pr-2">
+                          <p className="text-sm font-medium text-[var(--fg)]">
+                            {habit.name}
+                          </p>
+                          <p className="text-[11px] text-[var(--muted)] capitalize">
+                            {habit.checkpoint} · {habit.pillar}
+                            {habit.is_minimum && ' · Non-negotiable'}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <button
-                            onClick={() => handleToggleHabit(habit.id, 'done_target', doneTarget)}
+                            onClick={() => handleToggleHabit(habit.id, 'done_min', doneMin)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
-                              doneTarget
+                              doneMin
                                 ? 'bg-[var(--gold)] text-[#12110F] font-semibold'
                                 : 'bg-white/5 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--fg)]'
                             }`}
                           >
-                            Target
+                            Min
                           </button>
-                        )}
+                          {habit.target_value && (
+                            <button
+                              onClick={() => handleToggleHabit(habit.id, 'done_target', doneTarget)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
+                                doneTarget
+                                  ? 'bg-[var(--gold)] text-[#12110F] font-semibold'
+                                  : 'bg-white/5 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--fg)]'
+                              }`}
+                            >
+                              Target
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}

@@ -158,3 +158,70 @@ export function getActiveOrNextPrayer(
  * Convenient alias for calculatePrayerTimes
  */
 export const getDayPrayerTimes = calculatePrayerTimes;
+
+function addMinutesToHHmm(timeStr: string, minutes: number): string {
+  const [h, m] = timeStr.split(':').map(Number);
+  const totalM = h * 60 + m + minutes;
+  const newH = Math.floor((totalM / 60) % 24);
+  const newM = Math.floor(totalM % 60);
+  return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
+}
+
+/**
+ * Returns the human-readable routine / assigned time window for any habit.
+ */
+export function getHabitAssignedTime(
+  habitKey: string,
+  slot?: PrayerSlot | null
+): string | null {
+  switch (habitKey) {
+    case 'tahajjud':
+      return '04:45 – 05:05';
+    case 'salah_fajr':
+      return slot?.jamaatStr ? `Jamaat ${slot.jamaatStr}` : '05:30';
+    case 'quran':
+      return slot?.jamaatStr ? `~${addMinutesToHHmm(slot.jamaatStr, 20)}` : '06:00';
+    case 'adhkar_morning':
+      return slot?.jamaatStr ? `~${addMinutesToHHmm(slot.jamaatStr, 10)}` : 'Post-Fajr';
+    case 'move':
+      return '06:10 – 07:15';
+    case 'arabic_class':
+      return '09:00 – 11:00 (Sat)';
+    case 'big_rock':
+      return '07:30 – 09:30';
+    case 'linkedin_post':
+      return '09:30 – 10:00';
+    case 'revenue_actions':
+      return '09:30 – 11:30';
+    case 'weekly_review':
+      return '09:00 – 09:30 (Sun)';
+    case 'salah_dhuhr':
+      return slot?.jamaatStr ? `Jamaat ${slot.jamaatStr}` : '13:15';
+    case 'salah_asr':
+      return slot?.jamaatStr ? `Jamaat ${slot.jamaatStr}` : '16:45';
+    case 'arabic':
+      return slot?.jamaatStr ? `~${addMinutesToHHmm(slot.jamaatStr, 30)}` : '17:15';
+    case 'salah_maghrib':
+      return slot?.jamaatStr ? `Jamaat ${slot.jamaatStr}` : '18:20';
+    case 'adhkar_evening':
+      return 'At Maghrib';
+    case 'family_dinner':
+      return slot?.jamaatStr ? `~${addMinutesToHHmm(slot.jamaatStr, 40)}` : '19:00 – 20:00';
+    case 'salah_isha':
+      return slot?.jamaatStr ? `Jamaat ${slot.jamaatStr}` : '20:00';
+    case 'muhasaba':
+      return slot?.jamaatStr ? `~${addMinutesToHHmm(slot.jamaatStr, 35)}` : '20:40';
+    case 'read':
+      return '21:00 – 21:30';
+    case 'bed_2145':
+      return '21:45';
+    case 'clean_eating':
+      return 'All Day (⅓ rule)';
+    case 'sadaqah':
+      return 'Daily';
+    case 'maker':
+      return 'Fri 14:30 / Sat 11:30';
+    default:
+      return null;
+  }
+}

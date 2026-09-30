@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/drawer';
 import { motion } from 'motion/react';
 import { Check, Clock } from 'lucide-react';
-import type { PrayerSlot } from '@/lib/prayer';
+import { type PrayerSlot, getHabitAssignedTime } from '@/lib/prayer';
 import type { Database } from '@/lib/database.types';
 
 type Habit = Database['public']['Tables']['habits']['Row'];
@@ -85,15 +85,25 @@ export function CheckpointDrawer({
                 const isMinDone = Boolean(log?.done_min);
                 const isTargetDone = Boolean(log?.done_target);
 
+                const assignedTime = getHabitAssignedTime(habit.key, slot);
+
                 return (
                   <div
                     key={habit.id}
                     className="p-3 rounded-xl bg-[var(--bg)] border border-[var(--border)] flex items-center justify-between gap-3"
                   >
-                    <div className="space-y-0.5 flex-1 min-w-0">
-                      <h5 className="text-xs font-medium text-[var(--fg)] truncate">
-                        {habit.name}
-                      </h5>
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h5 className="text-xs font-medium text-[var(--fg)] truncate">
+                          {habit.name}
+                        </h5>
+                        {assignedTime && (
+                          <span className="px-1.5 py-0.5 rounded bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-[var(--gold)] font-mono text-[10px] shrink-0 flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" />
+                            <span>{assignedTime}</span>
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 text-[10px] font-mono text-[var(--muted)]">
                         <span>Min: {habit.min_value ?? 1}</span>
                         {!isBadDay && habit.target_value && (

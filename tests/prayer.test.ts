@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePrayerTimes, getActiveOrNextPrayer } from '@/lib/prayer';
+import {
+  calculatePrayerTimes,
+  getActiveOrNextPrayer,
+  getHabitAssignedTime,
+} from '@/lib/prayer';
 import { parseKarachiDateTime } from '@/lib/time';
 
 describe('lib/prayer.ts - Prayer Times Engine', () => {
@@ -76,5 +80,18 @@ describe('lib/prayer.ts - Prayer Times Engine', () => {
     const status2 = getActiveOrNextPrayer(afternoonNow, result);
     expect(status2.currentSlot?.name).toBe('dhuhr');
     expect(status2.nextSlot.name).toBe('asr');
+  });
+
+  it('assigns correct routine times to habits based on schedule and prayer slots', () => {
+    const result = calculatePrayerTimes('2026-09-28');
+    const fajrSlot = result.prayers.fajr;
+    const dhuhrSlot = result.prayers.dhuhr;
+
+    expect(getHabitAssignedTime('tahajjud', fajrSlot)).toBe('04:45 – 05:05');
+    expect(getHabitAssignedTime('move', fajrSlot)).toBe('06:10 – 07:15');
+    expect(getHabitAssignedTime('big_rock', dhuhrSlot)).toBe('07:30 – 09:30');
+    expect(getHabitAssignedTime('arabic_class', fajrSlot)).toBe('09:00 – 11:00 (Sat)');
+    expect(getHabitAssignedTime('bed_2145')).toBe('21:45');
+    expect(getHabitAssignedTime('salah_dhuhr', dhuhrSlot)).toBe(`Jamaat ${dhuhrSlot.jamaatStr}`);
   });
 });
