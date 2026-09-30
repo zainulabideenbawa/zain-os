@@ -18,17 +18,18 @@ export default async function StreaksPage() {
   let weeklyScore = 85;
   let deepWorkHours = 4.5;
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const userId = user.id;
+
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      redirect('/login');
-    }
-
-    const userId = user.id;
 
     // 1. Fetch profile
     const { data: profile } = await supabase

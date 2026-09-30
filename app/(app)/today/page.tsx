@@ -25,18 +25,18 @@ export default async function TodayPage() {
   let initialActiveSession: FocusSession | null = null;
   let initialCompletedMinutes = 0;
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const userId = user.id;
+
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      redirect('/login');
-    }
-
-    const userId = user.id;
-
     // 1. Fetch or create today's day record
     const { data: dayData } = await supabase
       .from('days')

@@ -8,18 +8,18 @@ export const revalidate = 0; // Dynamic SSR
 export default async function CoachPage() {
   let history: MuhasabaHistoryItem[] = [];
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const userId = user.id;
+
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      redirect('/login');
-    }
-
-    const userId = user.id;
-
     const { data } = await supabase
         .from('days')
         .select('date, energy, khushu, went_well, went_wrong, barrier, owned, shukr, closed_at')
@@ -38,7 +38,6 @@ export default async function CoachPage() {
         shukr: d.shukr,
         closed_at: d.closed_at,
       }));
-    }
   } catch (err) {
     console.warn('[CoachPage] DB fetch error:', err);
   }

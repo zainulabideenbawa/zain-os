@@ -25,18 +25,18 @@ export default async function PlanPage() {
   let streak = 0;
   let weeklyScore = 85;
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const userId = user.id;
+
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      redirect('/login');
-    }
-
-    const userId = user.id;
-
     // 1. Fetch profile
     const { data: p } = await supabase
       .from('profiles')
