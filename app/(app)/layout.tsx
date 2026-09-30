@@ -69,7 +69,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="text-xs font-mono text-[var(--muted)]">
               {formattedDate}
             </span>
-            <div className="w-2 h-2 rounded-full bg-[var(--emerald)] animate-pulse" />
           </div>
         </div>
       </header>

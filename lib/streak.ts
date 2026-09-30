@@ -88,6 +88,62 @@ export function checkDayMinimums(
 }
 
 /**
+ * Returns progress toward a kept day (doneCount out of 6 minimums).
+ * The 6 components:
+ * 1. 5 Salah (all 5 prayed)
+ * 2. Qur'an (1 page)
+ * 3. Move (20 min)
+ * 4. Big Rock (90 min; Sat: arabic_class; Sun: weekly_review)
+ * 5. Arabic (10 min; Sat: arabic_class)
+ * 6. Muhasaba + plan
+ */
+export function getMinimumsProgress(
+  dateStr: string,
+  completedHabitKeys: Set<string> | string[]
+): { doneCount: number; totalCount: number; isKept: boolean } {
+  const completed = new Set(completedHabitKeys);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+
+  const salahDone =
+    completed.has('salah_fajr') &&
+    completed.has('salah_dhuhr') &&
+    completed.has('salah_asr') &&
+    completed.has('salah_maghrib') &&
+    completed.has('salah_isha');
+
+  const quranDone = completed.has('quran');
+  const moveDone = completed.has('move');
+  const muhasabaDone = completed.has('muhasaba');
+
+  let bigRockDone = false;
+  let arabicDone = false;
+
+  if (weekday === 6) {
+    const arabicClass = completed.has('arabic_class');
+    bigRockDone = completed.has('big_rock') || arabicClass;
+    arabicDone = completed.has('arabic') || arabicClass;
+  } else if (weekday === 0) {
+    const weeklyReview = completed.has('weekly_review');
+    bigRockDone = completed.has('big_rock') || weeklyReview;
+    arabicDone = completed.has('arabic');
+  } else {
+    bigRockDone = completed.has('big_rock');
+    arabicDone = completed.has('arabic');
+  }
+
+  const items = [salahDone, quranDone, moveDone, bigRockDone, arabicDone, muhasabaDone];
+  const doneCount = items.filter(Boolean).length;
+  const totalCount = items.length; // 6
+
+  return {
+    doneCount,
+    totalCount,
+    isKept: doneCount === totalCount,
+  };
+}
+
+/**
  * Pure Streak Engine evaluating an ordered array of day records.
  */
 export function evaluateStreak(

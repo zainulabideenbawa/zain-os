@@ -72,7 +72,9 @@ export function PlanView({
 
   // Personal Project
   const [personalProject, setPersonalProject] = useState(
-    cycle?.personal_project || 'Agency OS Client Portal'
+    cycle?.personal_project && cycle.personal_project !== 'TBD'
+      ? cycle.personal_project
+      : ''
   );
   const [editingProject, setEditingProject] = useState(false);
 
@@ -211,20 +213,32 @@ export function PlanView({
               <Input
                 value={personalProject}
                 onChange={(e) => setPersonalProject(e.target.value)}
+                placeholder="e.g. PayClock, SolSniper, etc."
                 className="bg-neutral-900 border-white/10 text-xs h-9"
               />
               <Button
                 size="sm"
                 onClick={handleSaveProject}
-                className="bg-amber-500 hover:bg-amber-400 text-black text-xs font-semibold px-3"
+                className="bg-amber-500 hover:bg-amber-400 text-black text-xs font-semibold px-3 cursor-pointer"
               >
                 Save
               </Button>
             </div>
-          ) : (
+          ) : personalProject ? (
             <p className="text-sm font-semibold text-white">
               {personalProject}
             </p>
+          ) : (
+            <div className="pt-0.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingProject(true)}
+                className="border-[var(--gold)]/40 text-[var(--gold)] hover:bg-[var(--gold)]/10 text-xs font-mono h-8 cursor-pointer"
+              >
+                Pick your personal project
+              </Button>
+            </div>
           )}
 
           <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">

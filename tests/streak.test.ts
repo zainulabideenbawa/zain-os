@@ -3,6 +3,7 @@ import {
   evaluateStreak,
   checkDayMinimums,
   calculateWeekWin,
+  getMinimumsProgress,
 } from '@/lib/streak';
 
 describe('lib/streak.ts - Pure Streak Engine', () => {
@@ -167,4 +168,41 @@ describe('lib/streak.ts - Pure Streak Engine', () => {
     expect(calculateWeekWin(3, 7, 0.84)).toBe(false);
     expect(calculateWeekWin(10, 7, 0.90)).toBe(true);
   });
+
+  it('11. getMinimumsProgress correctly computes doneCount out of 6 minimums', () => {
+    // 2026-09-30 is Wednesday (weekday 3)
+    const date = '2026-09-30';
+    // 0 done
+    expect(getMinimumsProgress(date, [])).toEqual({
+      doneCount: 0,
+      totalCount: 6,
+      isKept: false,
+    });
+
+    // 4 done: fajr-isha (all 5 salah = 1), quran (= 2), move (= 3), arabic (= 4)
+    const fourDone = [
+      'salah_fajr',
+      'salah_dhuhr',
+      'salah_asr',
+      'salah_maghrib',
+      'salah_isha',
+      'quran',
+      'move',
+      'arabic',
+    ];
+    expect(getMinimumsProgress(date, fourDone)).toEqual({
+      doneCount: 4,
+      totalCount: 6,
+      isKept: false,
+    });
+
+    // All 6 done
+    const allDone = [...fourDone, 'big_rock', 'muhasaba'];
+    expect(getMinimumsProgress(date, allDone)).toEqual({
+      doneCount: 6,
+      totalCount: 6,
+      isKept: true,
+    });
+  });
 });
+

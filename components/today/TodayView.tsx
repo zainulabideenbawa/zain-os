@@ -9,7 +9,9 @@ import {
   type DayPrayerTimes,
   type PrayerSlot,
   getHabitAssignedTime,
+  getActiveOrNextPrayer,
 } from '@/lib/prayer';
+import { getMinimumsProgress } from '@/lib/streak';
 import type { Database } from '@/lib/database.types';
 import { IdentityCard } from './IdentityCard';
 import { BigRockCard } from './BigRockCard';
@@ -17,6 +19,8 @@ import { CheckpointDrawer } from './CheckpointDrawer';
 import { ParkIdeaDialog } from './ParkIdeaDialog';
 import { MuhasabaSheet } from './MuhasabaSheet';
 import { DayKeptOverlay } from './DayKeptOverlay';
+import { NowNextCard } from './NowNextCard';
+import { LawOfDayCard } from './LawOfDayCard';
 import { toggleHabitLog, toggleBadDayMode } from '@/app/actions/today';
 import { enqueueOfflineAction } from '@/lib/offline-sync';
 import { toast } from 'sonner';
@@ -42,7 +46,16 @@ export interface TodayViewProps {
   streak: StreakInfo | null;
   initialActiveSession?: FocusSession | null;
   initialCompletedMinutes?: number;
+  routineBlocks?: Database['public']['Tables']['routine_blocks']['Row'][];
 }
+
+const CHECKPOINT_MINIMUMS: Record<string, string> = {
+  fajr: "Qur'an 1 page · move 20",
+  dhuhr: "Big Rock 90 min",
+  asr: "Arabic 10 min",
+  maghrib: "Maghrib on time",
+  isha: "Muhasaba + plan",
+};
 
 export function TodayView({
   date,
@@ -54,13 +67,21 @@ export function TodayView({
   streak,
   initialActiveSession = null,
   initialCompletedMinutes = 0,
+  routineBlocks = [],
 }: TodayViewProps) {
+  const [now, setNow] = useState(() => new Date());
   const [badDayMode, setBadDayMode] = useState(Boolean(initialDay?.bad_day));
   const [selectedSlot, setSelectedSlot] = useState<PrayerSlot | null>(null);
   const [parkDialogOpen, setParkDialogOpen] = useState(false);
   const [muhasabaOpen, setMuhasabaOpen] = useState(false);
   const [dayKeptOpen, setDayKeptOpen] = useState(false);
-  const [keptStreak, setKeptStreak] = useState(streak?.current ?? 1);
+  const [keptStreak, setKeptStreak] = useState(streak?.current ?? 0);
+
+  // Live countdown ticker
+  React.useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   const planObj = initialDay?.plan as { big_rock_first_action?: string } | null;
   const firstAction = planObj?.big_rock_first_action || null;
@@ -168,27 +189,77 @@ export function TodayView({
     });
   };
 
-  const currentStreakCount = streak?.current ?? 1;
+  const currentStreakCount = streak?.current ?? 0;
   const bankedFreezes = streak?.freezes_banked ?? 0;
+  const streakState = streak?.state ?? 'open';
+  const isAtRisk = streakState === 'at_risk';
+  const isFrozen = streakState === 'frozen';
+
+  const completedHabitKeys = habits
+    .filter((h) => dayLogsMap[h.id]?.done_min)
+    .map((h) => h.key);
+  const minProgress = getMinimumsProgress(date, completedHabitKeys);
+
+  const { nextSlot, minutesToNextJamaat } = getActiveOrNextPrayer(now, prayerSchedule);
 
   return (
     <div className="space-y-6">
       {/* Top Header Controls: Streak Status + Bad Day Mode */}
       <div className="flex items-center justify-between p-3 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-xs font-mono font-medium text-[var(--gold)]">
-            <Flame className="w-3.5 h-3.5 fill-[var(--gold)]" />
+        <div className="flex items-center gap-2">
+          {/* Streak pill with at_risk / frozen / normal styling */}
+          <div
+            title={
+              isAtRisk
+                ? 'Missed yesterday. Keep today and the streak lives.'
+                : isFrozen
+                ? 'A freeze covered yesterday.'
+                : 'Daily Forgiving Streak'
+            }
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-medium transition-all ${
+              isAtRisk
+                ? 'bg-amber-500/10 border border-amber-500/40 text-amber-400'
+                : isFrozen
+                ? 'bg-blue-500/10 border border-blue-500/40 text-blue-400 ring-1 ring-blue-500/40'
+                : 'bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-[var(--gold)]'
+            }`}
+          >
+            <Flame
+              className={`w-3.5 h-3.5 ${
+                isAtRisk
+                  ? 'fill-amber-500 text-amber-500'
+                  : 'fill-[var(--gold)] text-[var(--gold)]'
+              }`}
+            />
             <span>{currentStreakCount}</span>
           </div>
 
-          <div className="flex items-center gap-1 text-xs font-mono text-[var(--muted)]">
+          {/* Freezes banked */}
+          <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-[var(--bg)] border border-[var(--border)] text-xs font-mono text-[var(--muted)]">
             <Shield className="w-3.5 h-3.5 text-blue-400" />
             <span>{bankedFreezes}/2</span>
+          </div>
+
+          {/* Today's progress toward a kept day */}
+          <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-[var(--bg)] border border-[var(--border)] text-xs font-mono">
+            <span
+              className={
+                minProgress.isKept
+                  ? 'text-[var(--gold)] font-bold'
+                  : 'text-[var(--fg)]'
+              }
+            >
+              {minProgress.doneCount}/{minProgress.totalCount}
+            </span>
+            <span className="text-[10px] text-[var(--muted)]">min</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <label htmlFor="bad-day-toggle" className="text-xs font-mono text-[var(--muted)] flex items-center gap-1.5 cursor-pointer">
+          <label
+            htmlFor="bad-day-toggle"
+            className="text-xs font-mono text-[var(--muted)] flex items-center gap-1.5 cursor-pointer"
+          >
             <Moon className="w-3.5 h-3.5" />
             <span>Bad Day</span>
           </label>
@@ -200,6 +271,18 @@ export function TodayView({
           />
         </div>
       </div>
+
+      {/* At-risk banner with exact copy from 05_CONTENT.md §4 */}
+      {isAtRisk && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs text-amber-300 flex items-center gap-2"
+        >
+          <Flame className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>Missed yesterday. Keep today and the streak lives.</span>
+        </motion.div>
+      )}
 
       {/* Bad Day Mode Banner (Visible only when active) */}
       {badDayMode && (
@@ -220,6 +303,7 @@ export function TodayView({
         date={date}
         confirmedAt={initialDay?.confirmed_at || null}
         cycleWeek={cycleWeek}
+        plan={initialDay?.plan as any}
       />
 
       {/* The Big Rock (07:30 – 09:30) */}
@@ -229,6 +313,13 @@ export function TodayView({
         firstAction={firstAction}
         initialActiveSession={initialActiveSession}
         initialCompletedMinutes={initialCompletedMinutes}
+      />
+
+      {/* Now / Next Card */}
+      <NowNextCard
+        date={date}
+        routineBlocks={routineBlocks}
+        prayerSchedule={prayerSchedule}
       />
 
       {/* Five Daily Salah Checkpoints */}
@@ -248,7 +339,10 @@ export function TodayView({
             const completedCount = slotHabits.filter(
               (h) => dayLogsMap[h.id]?.done_min
             ).length;
-            const allCompleted = slotHabits.length > 0 && completedCount === slotHabits.length;
+            const allCompleted =
+              slotHabits.length > 0 && completedCount === slotHabits.length;
+            const isNext = slot.name === nextSlot.name;
+            const minSummary = CHECKPOINT_MINIMUMS[slot.name];
 
             return (
               <motion.div
@@ -257,7 +351,9 @@ export function TodayView({
                 onClick={() => setSelectedSlot(slot)}
                 className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                   allCompleted
-                    ? 'bg-[var(--emerald)]/5 border-[var(--emerald)]/30'
+                    ? 'bg-[var(--gold)]/10 border-[var(--gold)]/40 shadow-sm'
+                    : isNext
+                    ? 'bg-[var(--card)] border-[var(--gold)] ring-1 ring-[var(--gold)]/50 shadow-[0_0_15px_rgba(200,169,110,0.2)]'
                     : 'bg-[var(--card)] border-[var(--border)] hover:border-[var(--card-hover-border)]'
                 }`}
               >
@@ -265,7 +361,9 @@ export function TodayView({
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
                       allCompleted
-                        ? 'bg-[var(--emerald)]/10 text-[var(--emerald)]'
+                        ? 'bg-[var(--gold)] text-black font-bold'
+                        : isNext
+                        ? 'bg-[var(--gold)]/20 border border-[var(--gold)]/40 text-[var(--gold)]'
                         : 'bg-[var(--bg)] border border-[var(--border)] text-[var(--muted)]'
                     }`}
                   >
@@ -273,17 +371,35 @@ export function TodayView({
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-sm font-semibold text-[var(--fg)]">
                         {slot.label}
                       </span>
-                      <span className="font-amiri text-xs text-[var(--gold)] ml-1" dir="rtl">
+                      <span
+                        className="font-amiri text-xs text-[var(--gold)] ml-1"
+                        dir="rtl"
+                      >
                         {slot.arabic}
                       </span>
+                      {isNext && minutesToNextJamaat > 0 && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[var(--gold)] text-black ml-1">
+                          Next · Jamaat in {minutesToNextJamaat}m
+                        </span>
+                      )}
                     </div>
-                    <div className="text-[11px] font-mono text-[var(--muted)]">
+
+                    {/* Minimum summary under the name */}
+                    {minSummary && (
+                      <div className="text-[11px] font-mono text-[var(--gold)] pt-0.5">
+                        {minSummary}
+                      </div>
+                    )}
+
+                    <div className="text-[11px] font-mono text-[var(--muted)] pt-0.5">
                       <span>Azan {slot.azanStr}</span> ·{' '}
-                      <span className="text-[var(--gold)]">Jamaat {slot.jamaatStr}</span>
+                      <span className="text-[var(--gold)] font-medium">
+                        Jamaat {slot.jamaatStr}
+                      </span>
                     </div>
 
                     {/* Assigned Tasks & Times Preview */}
@@ -297,7 +413,7 @@ export function TodayView({
                               key={h.id}
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono border transition-colors ${
                                 isDone
-                                  ? 'bg-[var(--emerald)]/10 text-[var(--emerald)] border-[var(--emerald)]/20 line-through opacity-75'
+                                  ? 'bg-[var(--gold)]/10 text-[var(--gold)] border-[var(--gold)]/30 line-through opacity-75'
                                   : 'bg-[var(--bg)] text-[var(--muted)] border-[var(--border)]'
                               }`}
                             >
@@ -320,7 +436,7 @@ export function TodayView({
                     <span
                       className={`text-xs font-mono px-2 py-0.5 rounded-lg border ${
                         allCompleted
-                          ? 'bg-[var(--emerald)]/10 text-[var(--emerald)] border-[var(--emerald)]/30'
+                          ? 'bg-[var(--gold)]/20 text-[var(--gold)] border-[var(--gold)]/40 font-bold'
                           : 'bg-[var(--bg)] text-[var(--muted)] border-[var(--border)]'
                       }`}
                     >
@@ -339,28 +455,31 @@ export function TodayView({
       <motion.div
         whileTap={{ scale: 0.98 }}
         onClick={() => setMuhasabaOpen(true)}
-        className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/30 to-indigo-950/30 border border-purple-800/40 hover:border-purple-700/60 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-lg shadow-purple-950/20"
+        className="p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:border-[var(--gold)]/50 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-md"
       >
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <h4 className="text-sm font-semibold text-purple-200">
+            <Sparkles className="w-4 h-4 text-[var(--gold)]" />
+            <h4 className="text-sm font-semibold text-[var(--fg)]">
               Evening Muhasaba & Plan
             </h4>
           </div>
-          <p className="text-xs text-purple-300/80 leading-relaxed">
+          <p className="text-xs text-[var(--muted)] leading-relaxed">
             Audit wins, log dhikr, and decide tomorrow&apos;s Big Rock.
           </p>
         </div>
 
         <Button
           size="sm"
-          className="h-9 px-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-medium shrink-0 cursor-pointer shadow-md"
+          className="h-9 px-3.5 bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-black font-semibold rounded-xl text-xs shrink-0 cursor-pointer shadow-sm"
         >
           Start Flow
           <ChevronRight className="w-3.5 h-3.5 ml-1" />
         </Button>
       </motion.div>
+
+      {/* Law of the Day Card */}
+      <LawOfDayCard date={date} />
 
       {/* Checkpoint Habits Drawer */}
       <CheckpointDrawer

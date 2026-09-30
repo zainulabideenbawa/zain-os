@@ -8,13 +8,21 @@ import { ChevronDown, Check, Sparkles } from 'lucide-react';
 import { confirmMorningPlan } from '@/app/actions/today';
 import { toast } from 'sonner';
 
+interface IdentityPlan {
+  top3?: string[];
+  big_rock_first_action?: string;
+  focusing_q?: string;
+  if_then?: string;
+}
+
 interface IdentityCardProps {
   date: string;
   confirmedAt: string | null;
   cycleWeek: number;
+  plan?: IdentityPlan | null;
 }
 
-export function IdentityCard({ date, confirmedAt, cycleWeek }: IdentityCardProps) {
+export function IdentityCard({ date, confirmedAt, cycleWeek, plan }: IdentityCardProps) {
   const [confirmed, setConfirmed] = useState(Boolean(confirmedAt));
   const [loading, setLoading] = useState(false);
   const [showDua, setShowDua] = useState(false);
@@ -37,6 +45,8 @@ export function IdentityCard({ date, confirmedAt, cycleWeek }: IdentityCardProps
     }
     setLoading(false);
   };
+
+  const top3Items = (plan?.top3 || []).filter((item) => item && item.trim().length > 0);
 
   return (
     <div className="p-4 rounded-2xl bg-gradient-to-b from-[var(--card)] to-[var(--bg)] border border-[var(--border)] shadow-md space-y-3">
@@ -89,10 +99,63 @@ export function IdentityCard({ date, confirmedAt, cycleWeek }: IdentityCardProps
         </AnimatePresence>
       </div>
 
+      {/* Last Night's Plan (Top 3 + Big Rock First Action) */}
+      <div className="pt-2 border-t border-[var(--border)] space-y-2">
+        <div className="flex items-center justify-between text-[11px] font-mono">
+          <span className="text-[var(--gold)] uppercase tracking-wider font-semibold">
+            Last Night&apos;s Plan
+          </span>
+          <span className="text-[var(--muted)]">Muhasaba Commitment</span>
+        </div>
+
+        {top3Items.length > 0 || plan?.big_rock_first_action ? (
+          <div className="space-y-2 text-xs">
+            {plan?.big_rock_first_action && (
+              <div className="p-2.5 rounded-xl bg-[var(--bg)] border border-[var(--border)] space-y-1">
+                <span className="text-[10px] font-mono uppercase text-[var(--gold)] block">
+                  Big Rock First Action
+                </span>
+                <p className="text-sm font-medium text-[var(--fg)]">
+                  {plan.big_rock_first_action}
+                </p>
+              </div>
+            )}
+
+            {top3Items.length > 0 && (
+              <div className="p-2.5 rounded-xl bg-[var(--bg)] border border-[var(--border)] space-y-1.5">
+                <span className="text-[10px] font-mono uppercase text-[var(--muted)] block">
+                  Top 3 Outcomes
+                </span>
+                <ol className="space-y-1">
+                  {top3Items.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-xs text-[var(--fg)]">
+                      <span className="font-mono text-[var(--gold)] font-bold text-[11px] shrink-0">
+                        {idx + 1}.
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            {plan?.if_then && (
+              <div className="p-2 rounded-lg bg-[var(--bg)]/60 text-[11px] text-[var(--muted)] border border-[var(--border)] italic">
+                &ldquo;{plan.if_then}&rdquo;
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-[var(--muted)] italic">
+            No plan set last night. Decide your Big Rock and commit for today.
+          </p>
+        )}
+      </div>
+
       {/* Plan confirmation button */}
       <div>
         {confirmed ? (
-          <div className="w-full py-2 px-3 rounded-xl bg-[var(--emerald)]/10 border border-[var(--emerald)]/20 flex items-center justify-center gap-2 text-xs font-mono text-[var(--emerald)]">
+          <div className="w-full py-2 px-3 rounded-xl bg-[var(--gold)]/10 border border-[var(--gold)]/30 flex items-center justify-center gap-2 text-xs font-mono text-[var(--gold)]">
             <Check className="w-4 h-4" />
             <span>Morning Plan Confirmed</span>
           </div>

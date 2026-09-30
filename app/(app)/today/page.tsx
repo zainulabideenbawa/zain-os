@@ -73,13 +73,21 @@ export default async function TodayPage() {
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (profile) {
-      streak = {
-        current: profile.streak ?? 0,
-        state: 'kept',
-        freezes_banked: profile.freezes ?? 0,
-      };
-    }
+    // Derive streak state from yesterday's day record
+    const { getYesterdayDate } = await import('@/lib/time');
+    const yesterdayDate = getYesterdayDate(logicalDate);
+    const { data: yesterdayDay } = await supabase
+      .from('days')
+      .select('state')
+      .eq('user_id', userId)
+      .eq('date', yesterdayDate)
+      .maybeSingle();
+
+    streak = {
+      current: profile?.streak ?? 0,
+      state: yesterdayDay?.state ?? 'open',
+      freezes_banked: profile?.freezes ?? 0,
+    };
 
     // 5. Fetch active & today's focus sessions
     const { data: focusSessions } = await supabase
@@ -93,21 +101,46 @@ export default async function TodayPage() {
     initialCompletedMinutes = (focusSessions || [])
       .filter((s) => s.block_key === 'big_rock' && s.ended_at !== null)
       .reduce((sum, s) => sum + (s.minutes || 0), 0);
+
+    // 6. Fetch routine blocks
+    const { data: blocksData } = await supabase
+      .from('routine_blocks')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('active', true)
+      .order('sort', { ascending: true });
+
+    const routineBlocks = blocksData || [];
+
+    return (
+      <TodayView
+        date={logicalDate}
+        cycleWeek={cycleWeek}
+        initialDay={initialDay}
+        initialDayLogs={initialDayLogs}
+        habits={habits}
+        prayerSchedule={prayerSchedule}
+        streak={streak}
+        initialActiveSession={initialActiveSession}
+        initialCompletedMinutes={initialCompletedMinutes}
+        routineBlocks={routineBlocks}
+      />
+    );
   } catch (err) {
     console.warn('[TodayPage] DB fetch error:', err);
+    return (
+      <TodayView
+        date={logicalDate}
+        cycleWeek={cycleWeek}
+        initialDay={initialDay}
+        initialDayLogs={initialDayLogs}
+        habits={habits}
+        prayerSchedule={prayerSchedule}
+        streak={streak}
+        initialActiveSession={initialActiveSession}
+        initialCompletedMinutes={initialCompletedMinutes}
+        routineBlocks={[]}
+      />
+    );
   }
-
-  return (
-    <TodayView
-      date={logicalDate}
-      cycleWeek={cycleWeek}
-      initialDay={initialDay}
-      initialDayLogs={initialDayLogs}
-      habits={habits}
-      prayerSchedule={prayerSchedule}
-      streak={streak}
-      initialActiveSession={initialActiveSession}
-      initialCompletedMinutes={initialCompletedMinutes}
-    />
-  );
 }

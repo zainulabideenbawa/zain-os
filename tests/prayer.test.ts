@@ -19,12 +19,12 @@ describe('lib/prayer.ts - Prayer Times Engine', () => {
     }
 
     // Spec §M2 sanity checks:
-    // Fajr: 05:07, Dhuhr: 12:24, Asr: 16:42, Maghrib: 18:22, Isha: 19:38 (±2 min)
-    expect(diffMinutes(fajr.azanStr, '05:07')).toBeLessThanOrEqual(2);
-    expect(diffMinutes(dhuhr.azanStr, '12:24')).toBeLessThanOrEqual(2);
-    expect(diffMinutes(asr.azanStr, '16:42')).toBeLessThanOrEqual(2);
-    expect(diffMinutes(maghrib.azanStr, '18:22')).toBeLessThanOrEqual(2);
-    expect(diffMinutes(isha.azanStr, '19:38')).toBeLessThanOrEqual(2);
+    // Fajr: 05:07, Dhuhr: 12:24, Asr: 16:42, Maghrib: 18:22, Isha: 19:38
+    expect(fajr.azanStr).toBe('05:07');
+    expect(dhuhr.azanStr).toBe('12:24');
+    expect(asr.azanStr).toBe('16:42');
+    expect(maghrib.azanStr).toBe('18:22');
+    expect(isha.azanStr).toBe('19:38');
   });
 
   it('calculates jamaat times with offsets and fixed settings accurately', () => {
