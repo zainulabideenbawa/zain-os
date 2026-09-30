@@ -69,7 +69,6 @@ export async function completeOnboarding(params: {
       .from('cycles')
       .update({
         personal_project: params.personalProject,
-        updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId)
       .eq('status', 'active');

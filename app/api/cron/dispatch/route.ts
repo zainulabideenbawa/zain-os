@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
 
     let dispatchedCount = 0;
     let skippedCount = 0;
+    let failedCount = 0;
     const staleThresholdMs = Date.now() - 10 * 60 * 1000;
 
     for (const item of queue) {
