@@ -212,7 +212,7 @@ export function SettingsDialog({
                       applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as BufferSource,
                     });
                     const subData = sub.toJSON();
-                    await fetch('/api/push/subscribe', {
+                    const res = await fetch('/api/push/subscribe', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
@@ -221,9 +221,15 @@ export function SettingsDialog({
                         user_agent: navigator.userAgent,
                       }),
                     });
+                    const resData = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                      toast.error(resData.error || 'Failed to save subscription on server');
+                      return;
+                    }
                     toast.success('Reminders enabled and subscription saved!');
-                  } catch (err) {
-                    toast.error('Failed to enable reminders');
+                  } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : 'Failed to enable reminders';
+                    toast.error(msg);
                   }
                 }}
                 className="text-xs h-8 rounded-lg border-[var(--line)] bg-[#181614] text-[var(--fg)] hover:border-[var(--gold)] cursor-pointer"

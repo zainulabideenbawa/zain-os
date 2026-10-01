@@ -33,7 +33,7 @@ export async function POST(req: Request) {
           auth: keys.auth,
           device_label: user_agent || null,
         },
-        { onConflict: 'user_id,endpoint' }
+        { onConflict: 'endpoint' }
       );
 
     if (dbError) {

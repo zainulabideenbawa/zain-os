@@ -120,7 +120,7 @@ export default function OnboardingPage() {
 
       const subData = subscription.toJSON();
       if (subData.endpoint && subData.keys) {
-        await fetch('/api/push/subscribe', {
+        const res = await fetch('/api/push/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -129,6 +129,10 @@ export default function OnboardingPage() {
             user_agent: navigator.userAgent,
           }),
         });
+        if (!res.ok) {
+          const resData = await res.json().catch(() => ({}));
+          throw new Error(resData.error || 'Failed to save subscription');
+        }
       }
 
       setNotificationsEnabled(true);
